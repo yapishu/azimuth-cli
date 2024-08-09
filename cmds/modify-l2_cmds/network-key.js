@@ -67,7 +67,7 @@ exports.handler = async function (argv)
     var publicCrypt = ajsUtils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajsUtils.addHexPrefix(networkKeyPair.auth.public);
 
-    if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth)
+    if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && !argv.breach)
     {
         console.log(`The network key is already set for ${patp}`);
         // console.log(JSON.stringify(networkKeyPair, null, 2));
