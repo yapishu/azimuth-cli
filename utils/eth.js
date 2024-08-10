@@ -3,6 +3,7 @@ const ajs = require('azimuth-js')
 const files = require('./files')
 const {Accounts} = require('web3-eth-accounts');
 const { env } = require('yargs');
+const ob = require('urbit-ob');
 
 function initWeb3(argv)
 {
@@ -49,6 +50,10 @@ async function createContext(argv)
 
 async function getPrivateKey(argv){
   let pk = null;
+  let decPoint = 0;
+  if ((argv.breach) && (argv.point)) {
+    decPoint = ob.patp2dec(`~${argv.point}`);
+  }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
     pk = argv.privateKey;
@@ -64,7 +69,7 @@ async function getPrivateKey(argv){
     const kg = require('urbit-key-generation');
     let wallet = await kg.generateWallet({
       ticket: argv.privateKeyTicket,
-      ship: 0, //we just use the wallet code to derrive the pk, ship is not used
+      ship: {decPoint},
       boot: false,
       revision: 1
     });
