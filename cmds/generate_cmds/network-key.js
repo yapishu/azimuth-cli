@@ -2,6 +2,7 @@ const ob = require('urbit-ob')
 const kg = require('urbit-key-generation');
 const ticket = require('up8-ticket');
 const _ = require('lodash')
+const details = require('../get_cmds/details')
 const {files, validate, findPoints} = require('../../utils')
 
 // needs to be required explicitly for up8-ticket to work
@@ -44,9 +45,12 @@ exports.handler = async function (argv)
   console.log(`Will generate network keys for ${points.length} points.`);
   for (const p of points) {
     const patp = ob.patp(p);
+    argv.returnDetails = true;
+
+    const pinfo = await details.getPointInfo(p, argv);
 
     let networkKeyPair = null;
-    let revision = DEFAULT_REVISION; //TODO: support bumping the revision (by looking it up on-chain)
+    let revision = pinfo.networkKeysRevision;
 
     //see if we have a wallet to get the network keys from
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
