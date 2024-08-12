@@ -51,6 +51,10 @@ exports.handler = async function (argv)
 
     let networkKeyPair = null;
     let revision = pinfo.networkKeysRevision;
+    // increment since it is obviously not the current key
+    if (typeof revision === 'number') {
+      revision += 1;
+    }
 
     //see if we have a wallet to get the network keys from
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
