@@ -55,6 +55,13 @@ exports.getPointInfo = async function (p, argv){
   }
 };
 
+function sanitizeAddress(address){
+  if(address && !ajs.utils.addressEquals('0x0000000000000000000000000000000000000000', address)){
+    return address.toLowerCase();
+  }
+  return null;
+}
+
 async function printDetailsFromL1(argv, p){
   const ctx = await eth.createContext(argv);
 
@@ -113,9 +120,15 @@ async function printDetailsFromL2(argv, p){
   catch(error){
     if(error.message.includes('Resource not found')){
       console.log('planet does not exist on L2, please try again with the --use-azimuth option.')
+      if (argv.returnDetails) {
+        return null;
+      }
     }
     else{
       console.log(error);
+      if (argv.returnDetails) {
+        return null;
+      }
     }
     return;
   }

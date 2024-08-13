@@ -48,12 +48,21 @@ exports.handler = async function (argv)
     argv.returnDetails = true;
 
     const pinfo = await details.getPointInfo(p, argv);
+    if (pinfo === null) {
+      console.log(`Could not get details for ${patp}, will skip.`);
+      continue;
+    }
 
     let networkKeyPair = null;
     let revision = pinfo.networkKeysRevision;
     // increment since it is obviously not the current key
-    if (typeof revision === 'number') {
-      revision += 1;
+    let numericRevision = Number(revision);
+    if (!isNaN(numericRevision)) {
+      if ((numericRevision === 0) && (networkKeysSet !== true)) {
+        continue
+      } else {
+        numericRevision += 1;
+      }
     }
 
     //see if we have a wallet to get the network keys from
@@ -68,7 +77,7 @@ exports.handler = async function (argv)
     //otherwise, generate network keys
     else
     {
-      const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
+      const keysFileName = `${patp.substring(1)}-networkkeys-${numericRevision}.json`;
       if(!files.fileExists(workDir, keysFileName))
       {
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
@@ -91,10 +100,10 @@ exports.handler = async function (argv)
     }
 
     //generate network keyfile, which is used to boot the urbit
-    var networkKeyfileName = `${patp.substring(1)}-${revision}.key`;
+    var networkKeyfileName = `${patp.substring(1)}-${numericRevision}.key`;
     if(!files.fileExists(workDir, networkKeyfileName))
     {
-      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, DEFAULT_REVISION);
+      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, numericRevision);
       const file = files.writeFile(workDir, networkKeyfileName, networkKeyfileContents);
       console.log(`Wrote network keyfile to: ${file}`);
     }
@@ -104,5 +113,3 @@ exports.handler = async function (argv)
     }
   }
 }
-
-const DEFAULT_REVISION = 0;
