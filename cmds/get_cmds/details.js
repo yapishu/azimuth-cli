@@ -79,6 +79,9 @@ async function printDetailsFromL1(argv, p){
   const shipType = ob.clan(patp);
   const parentPatp = ob.sein(patp);
   const parentP = ob.patp2dec(parentPatp);
+  if (argv.breach) {
+    networkKeysRevision += 1;
+  }
 
   if (argv.returnDetails) {
     return {
@@ -141,6 +144,10 @@ async function printDetailsFromL2(argv, p){
   const shipType = ob.clan(patp);
   const parentPatp = ob.sein(patp);
   const parentP = ob.patp2dec(parentPatp);
+  networkKeysRevision = pointInfo.network.keys.life;
+  if (argv.breach) {
+    networkKeysRevision += 1;
+  }
   if (argv.returnDetails) {
     return {
       patp: ob.patp(p),
@@ -154,7 +161,7 @@ async function printDetailsFromL2(argv, p){
       managementProxy: pointInfo.ownership.managementProxy.address,
       transferProxy: pointInfo.ownership.transferProxy.address,
       networkKeysSet: pointInfo.network.keys.auth,
-      networkKeysRevision: pointInfo.network.keys.life,
+      networkKeysRevision: networkKeysRevision,
       continuityNumber: pointInfo.network.rift,
       spawnedChildrenCount: spawnedChildren.length
     };
@@ -170,7 +177,7 @@ async function printDetailsFromL2(argv, p){
   console.log(`management proxy address: ${pointInfo.ownership.managementProxy.address}`);
   console.log(`transfer proxy address: ${pointInfo.ownership.transferProxy.address}`);
   console.log(`network keys set: ${pointInfo.network.keys.auth ? 'true' : 'false'}`);
-  console.log(`network keys revision (life): ${pointInfo.network.keys.life}`);
+  console.log(`network keys revision (life): ${networkKeysRevision}`);
   console.log(`continuity number (rift): ${pointInfo.network.rift}`);
   console.log(`spawned children: ${spawnedChildren.length}`);
 }
