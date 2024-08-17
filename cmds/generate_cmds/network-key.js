@@ -55,13 +55,15 @@ exports.handler = async function (argv)
 
     let networkKeyPair = null;
     let revision = pinfo.networkKeysRevision;
-    // increment since it is obviously not the current key
     let numericRevision = Number(revision);
-    if (!isNaN(numericRevision)) {
-      if ((numericRevision === 0) && (networkKeysSet !== true)) {
-        continue
-      } else {
-        numericRevision += 1;
+    if (argv.breach) {
+      // increment since it is obviously not the current key
+      if (!isNaN(numericRevision)) {
+        if ((numericRevision === 0) && (networkKeysSet !== true)) {
+          continue
+        } else {
+          numericRevision += 1;
+        }
       }
     }
 
@@ -86,7 +88,7 @@ exports.handler = async function (argv)
           ticket: tmpMasterTicket,
           ship: p,
           boot: true,
-          revision: revision
+          revision: numericRevision
         });
         networkKeyPair = tmpWallet.network.keys;
         const file = files.writeFile(workDir, keysFileName, networkKeyPair);

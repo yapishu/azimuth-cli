@@ -75,12 +75,12 @@ async function printDetailsFromL1(argv, p){
   const networkKeysRevision = await ajs.azimuth.getKeyRevisionNumber(ctx.contracts, p);
   const continuityNumber = await ajs.azimuth.getContinuityNumber(ctx.contracts, p);
   const spawnedChildrenCount = await ajs.azimuth.getSpawnCount(ctx.contracts, p);
+  const patp = ob.patp(p);
+  const shipType = ob.clan(patp);
+  const parentPatp = ob.sein(patp);
+  const parentP = ob.patp2dec(parentPatp);
 
   if (argv.returnDetails) {
-    const patp = ob.patp(p);
-    const shipType = ob.clan(patp);
-    const parentPatp = ob.sein(patp);
-    const parentP = ob.patp2dec(parentPatp);
     return {
       patp: patp,
       p: p,
@@ -137,11 +137,11 @@ async function printDetailsFromL2(argv, p){
   const sponsorPatp = ob.patp(sponsorP);
   const hasSponsor = pointInfo.network.sponsor.has;
   const spawnedChildren = await rollerApi.getSpawned(rollerClient, p);
+  const patp = ob.patp(p);
+  const shipType = ob.clan(patp);
+  const parentPatp = ob.sein(patp);
+  const parentP = ob.patp2dec(parentPatp);
   if (argv.returnDetails) {
-    const patp = ob.patp(p);
-    const shipType = ob.clan(patp);
-    const parentPatp = ob.sein(patp);
-    const parentP = ob.patp2dec(parentPatp);
     return {
       patp: ob.patp(p),
       p: p,
