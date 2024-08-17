@@ -15,6 +15,11 @@ exports.builder = (yargs) =>{
     type: 'boolean',
     conflicts: 'use-roller'
   });
+  yargs.option('breach',{
+    describe: 'Generate keys for the next key revision.',
+    default: false,
+    type: 'boolean',
+  });
 }
 
 exports.handler = async function (argv) {
