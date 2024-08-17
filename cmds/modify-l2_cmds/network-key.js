@@ -19,9 +19,6 @@ exports.handler = async function (argv)
 {
   const rollerClient = rollerApi.createClient(argv);
   const workDir = files.ensureWorkDir(argv.workDir);
-  const privateKey = await eth.getPrivateKey(argv);
-  const account = new Accounts().privateKeyToAccount(privateKey);
-  const signingAddress = account.address;
 
   const wallets = argv.useWalletFiles ? findPoints.getWallets(workDir) : null;
   const points = findPoints.getPoints(argv, workDir, wallets);
@@ -44,6 +41,13 @@ exports.handler = async function (argv)
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
     const revision = currentRevision;
+    if (argv.breach){
+      revision = currentRevision + 1;
+      argv.revision = currentRevision + 1;
+    }
+    const privateKey = await eth.getPrivateKey(argv);
+    const account = new Accounts().privateKeyToAccount(privateKey);
+    const signingAddress = account.address;
     const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
     
     let networkKeyPair = null;
