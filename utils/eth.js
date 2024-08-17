@@ -52,7 +52,7 @@ async function getPrivateKey(argv){
   let pk = null;
   let decPoint = 0;
   if ((argv.breach) && (argv.point)) {
-    decPoint = ob.patp2dec(ob.patp(`~${argv.point}`));
+    decPoint = int(ob.patp2dec(ob.patp(`~${argv.point}`)));
   }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
@@ -75,7 +75,7 @@ async function getPrivateKey(argv){
       ticket: argv.privateKeyTicket,
       ship: {decPoint},
       boot: false,
-      revision: 1
+      revision: revision
     });
     pk = wallet.ownership.keys.private;
   }
