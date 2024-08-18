@@ -60,7 +60,7 @@ async function getPrivateKey(argv){
   let pk = null;
   let decPoint = 0;
   if ((argv.breach) && (argv.point)) {
-    decPoint = ob.patp2dec(argv.point);
+    decPoint = ob.patp2dec(`~${argv.point}`);
   }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
