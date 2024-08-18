@@ -90,6 +90,7 @@ exports.handler = async function (argv)
           boot: boot,
           revision: revision
         });
+        console.log(`Generated network keys for ${patp}: ${argv.privateKeyTicket}, ${boot}, ${revision}`);
         networkKeyPair = tmpWallet.network.keys;
         const file = files.writeFile(workDir, keysFileName, networkKeyPair);
         pk = tmpWallet.ownership.keys.private;
