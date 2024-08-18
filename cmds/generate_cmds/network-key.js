@@ -86,7 +86,7 @@ exports.handler = async function (argv)
         }
         const tmpWallet = await kg.generateWallet({
           ticket: argv.privateKeyTicket,
-          ship: decPoint,
+          ship: patp,
           boot: boot,
           revision: revision
         });
