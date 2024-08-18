@@ -81,12 +81,13 @@ exports.handler = async function (argv)
         // const bitSize = argv.bitSize ?? getBitSize(p);
         // const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
         let boot = false;
+        let decPoint = ob.patp2dec(patp);
         if (argv.breach) {
           boot = true;
         }
         const tmpWallet = await kg.generateWallet({
           ticket: argv.privateKeyTicket,
-          ship: patp,
+          ship: decPoint,
           boot: boot,
           revision: revision
         });
