@@ -68,7 +68,7 @@ async function getPrivateKey(argv){
   }
   let revision = 1;
   if(argv.revision){
-    revision = int(argv.revision);
+    revision = Number(argv.revision);
   }
   if(argv.privateKeyFile){
     pk = files.readLines('', argv.privateKeyFile).find(x=>!x);//get the first non-empty line
