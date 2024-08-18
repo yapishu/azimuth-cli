@@ -5,6 +5,14 @@ const {Accounts} = require('web3-eth-accounts');
 const { env } = require('yargs');
 const ob = require('urbit-ob');
 
+exports.builder = function(yargs) {
+  yargs.option('point',{
+    describe: 'Input @p for ship.',
+    default: 'zod',
+    type: 'string',
+  });
+}
+
 function initWeb3(argv)
 {
   if(argv.useMainnet){

@@ -40,13 +40,15 @@ exports.handler = async function (argv)
     //retrieve the network keypair
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
+    argv.point = patp;
     const revision = currentRevision;
-    const privateKey = await eth.getPrivateKey(argv);
-    const account = new Accounts().privateKeyToAccount(privateKey);
-    const signingAddress = account.address;
+    argv.revision = revision;
     if(argv.breach){
       revision = `${Number(revision)+1}`;
     }
+    const privateKey = await eth.getPrivateKey(argv);
+    const account = new Accounts().privateKeyToAccount(privateKey);
+    const signingAddress = account.address;
     const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
     
     let networkKeyPair = null;
