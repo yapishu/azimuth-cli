@@ -71,7 +71,7 @@ async function getPrivateKey(argv){
       ticket: argv.privateKeyTicket,
       ship: decPoint,
       boot: false,
-      revision: 1
+      revision: argv.revision
     });
     pk = wallet.ownership.keys.private;
   }
