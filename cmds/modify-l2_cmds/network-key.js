@@ -41,9 +41,10 @@ exports.handler = async function (argv)
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
     argv.point = patp;
-    const revision = currentRevision;
+    let revision = currentRevision;
     argv.revision = revision;
     if(argv.breach){
+      // we want the next key revision if breach
       revision = `${Number(revision)+1}`;
     }
     const privateKey = await eth.getPrivateKey(argv);
