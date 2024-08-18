@@ -151,7 +151,7 @@ async function printDetailsFromL2(argv, p){
   const parentP = ob.patp2dec(parentPatp);
   networkKeysRevision = pointInfo.network.keys.life;
   if (argv.breach) {
-    networkKeysRevision += 1;
+    networkKeysRevision = `${Number(networkKeysRevision) + 1}`;
   }
   if (argv.returnDetails) {
     return {
