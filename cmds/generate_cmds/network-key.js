@@ -50,7 +50,7 @@ exports.handler = async function (argv)
   console.log(`Will generate network keys for ${points.length} points.`);
   for (const p of points) {
     const patp = ob.patp(p);
-    decPpint = ob.patp2dec(patp);
+    const decPoint = ob.patp2dec(patp);
     argv.returnDetails = true;
 
     const pinfo = await details.getPointInfo(p, argv);
