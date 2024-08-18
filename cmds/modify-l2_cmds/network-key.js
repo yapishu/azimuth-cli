@@ -40,7 +40,7 @@ exports.handler = async function (argv)
     //retrieve the network keypair
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
-    argv.point = p;
+    argv.patp = patp;
     let revision = currentRevision;
     argv.revision = revision;
     if(argv.breach){

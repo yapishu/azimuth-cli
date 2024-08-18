@@ -59,8 +59,8 @@ async function createContext(argv)
 async function getPrivateKey(argv){
   let pk = null;
   let decPoint = 0;
-  if ((argv.breach) && (argv.point)) {
-    decPoint = ob.patp2dec(`~${argv.point}`);
+  if ((argv.breach) && (argv.patp)) {
+    decPoint = ob.patp2dec(argv.patp);
   }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
