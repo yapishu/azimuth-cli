@@ -78,16 +78,21 @@ exports.handler = async function (argv)
       if(!files.fileExists(workDir, keysFileName))
       {
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
-        const bitSize = argv.bitSize ?? getBitSize(p);
-        const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
+        // const bitSize = argv.bitSize ?? getBitSize(p);
+        // const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
+        let boot = false;
+        if (argv.breach) {
+          boot = true;
+        }
         const tmpWallet = await kg.generateWallet({
-          ticket: tmpMasterTicket,
+          ticket: argv.privateKeyTicket,
           ship: decPoint,
-          boot: true,
+          boot: boot,
           revision: revision
         });
         networkKeyPair = tmpWallet.network.keys;
         const file = files.writeFile(workDir, keysFileName, networkKeyPair);
+        pk = tmpWallet.ownership.keys.private;
         console.log(`Wrote network keys to: ${file}`);
       }
       else
