@@ -29,6 +29,11 @@ exports.builder = (yargs) =>{
     type: 'boolean',
     conflicts: ['points-file', 'points']
   });
+  yargs.option('breach',{
+    describe: 'Generate keys for the next key revision.',
+    default: false,
+    type: 'boolean',
+  });
   yargs.check(argv => {
     if (!argv.pointsFile && !argv.points && !argv.useWalletFiles) throw new Error('You must provide either --points-file, --points, or --use-wallet-files')
     return true
