@@ -34,11 +34,6 @@ exports.builder = (yargs) =>{
     default: false,
     type: 'boolean',
   });
-  yargs.option('bit-size',{
-    choices: [64, 128, 384],
-    describe: 'The bit size for all wallets. If not set, will use the standard bit size for each individual point.',
-    type: 'number',
-  });
   yargs.check(argv => {
     if (!argv.pointsFile && !argv.points && !argv.useWalletFiles) throw new Error('You must provide either --points-file, --points, or --use-wallet-files')
     return true
@@ -55,6 +50,7 @@ exports.handler = async function (argv)
   console.log(`Will generate network keys for ${points.length} points.`);
   for (const p of points) {
     const patp = ob.patp(p);
+    decPpint = ob.patp2dec(patp);
     argv.returnDetails = true;
 
     const pinfo = await details.getPointInfo(p, argv);
@@ -86,7 +82,7 @@ exports.handler = async function (argv)
         const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
         const tmpWallet = await kg.generateWallet({
           ticket: tmpMasterTicket,
-          ship: p,
+          ship: decPoint = decPoint,
           boot: true,
           revision: revision
         });
