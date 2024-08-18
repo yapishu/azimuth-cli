@@ -42,16 +42,16 @@ exports.handler = async function (argv)
     const currentRevision = currentKeys.life; //network key revision number == life.
     argv.point = patp;
     let revision = currentRevision; // this is +1 with the --breach flag
-    argv.revision = revision;
-    keyfileRevision = revision;
     if(argv.breach){
       // we want the next key revision if breach
-      keyfileRevision = `${Number(revision)+1}`;
+      console.log('Generating keys for breaching');
+      revision = `${Number(revision)+1}`;
     }
+    argv.revision = revision;
     const privateKey = await eth.getPrivateKey(argv);
     const account = new Accounts().privateKeyToAccount(privateKey);
     const signingAddress = account.address;
-    const keysFileName = `${patp.substring(1)}-networkkeys-${keyfileRevision}.json`;
+    const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
     
     let networkKeyPair = null;
     if(wallet){
