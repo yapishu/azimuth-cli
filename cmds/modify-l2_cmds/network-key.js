@@ -51,6 +51,7 @@ exports.handler = async function (argv)
     const privateKey = await eth.getPrivateKey(argv);
     const account = new Accounts().privateKeyToAccount(privateKey);
     const signingAddress = account.address;
+    console.log(`Signing address: ${signingAddress}`);
     const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
     
     let networkKeyPair = null;
