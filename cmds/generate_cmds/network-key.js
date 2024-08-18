@@ -34,6 +34,11 @@ exports.builder = (yargs) =>{
     default: false,
     type: 'boolean',
   });
+  yargs.option('bit-size',{
+    choices: [64, 128, 384],
+    describe: 'The bit size for all wallets. If not set, will use the standard bit size for each individual point.',
+    type: 'number',
+  });
   yargs.check(argv => {
     if (!argv.pointsFile && !argv.points && !argv.useWalletFiles) throw new Error('You must provide either --points-file, --points, or --use-wallet-files')
     return true
@@ -77,7 +82,8 @@ exports.handler = async function (argv)
       if(!files.fileExists(workDir, keysFileName))
       {
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
-        const tmpMasterTicket = await ticket.gen_ticket_more(128);
+        const bitSize = argv.bitSize ?? getBitSize(p);
+        const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
         const tmpWallet = await kg.generateWallet({
           ticket: tmpMasterTicket,
           ship: p,
@@ -109,3 +115,16 @@ exports.handler = async function (argv)
     }
   }
 }
+
+const MIN_STAR = 256;
+const MIN_PLANET = 65536;
+const PLANET_ENTROPY_BITS = 64;
+const STAR_ENTROPY_BITS = 128;
+const GALAXY_ENTROPY_BITS = 384;
+
+const getBitSize = point =>
+  point < MIN_STAR
+    ? GALAXY_ENTROPY_BITS
+    : point < MIN_PLANET
+    ? STAR_ENTROPY_BITS
+    : PLANET_ENTROPY_BITS;
