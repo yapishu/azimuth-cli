@@ -5,14 +5,6 @@ const {Accounts} = require('web3-eth-accounts');
 const { env } = require('yargs');
 const ob = require('urbit-ob');
 
-exports.builder = function(yargs) {
-  yargs.option('point',{
-    describe: 'Input @p for ship.',
-    default: 'zod',
-    type: 'string',
-  });
-}
-
 function initWeb3(argv)
 {
   if(argv.useMainnet){
@@ -59,18 +51,12 @@ async function createContext(argv)
 async function getPrivateKey(argv){
   let pk = null;
   let decPoint = 0;
-  let boot = false;
-  if ((argv.breach) && (argv.patp)) {
-    decPoint = ob.patp2dec(argv.patp);
-    boot = true
+  if ((argv.breach) && (argv.point)) {
+    decPoint = ob.patp2dec(`~${argv.point}`);
   }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
     pk = argv.privateKey;
-  }
-  let revision = 1;
-  if(argv.revision){
-    revision = Number(argv.revision);
   }
   if(argv.privateKeyFile){
     pk = files.readLines('', argv.privateKeyFile).find(x=>!x);//get the first non-empty line
@@ -83,9 +69,9 @@ async function getPrivateKey(argv){
     const kg = require('urbit-key-generation');
     let wallet = await kg.generateWallet({
       ticket: argv.privateKeyTicket,
-      ship: decPoint,
-      boot: boot,
-      revision: revision
+      ship: {decPoint},
+      boot: false,
+      revision: 1
     });
     pk = wallet.ownership.keys.private;
   }
