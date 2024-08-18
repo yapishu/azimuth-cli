@@ -81,7 +81,7 @@ async function getPrivateKey(argv){
     const kg = require('urbit-key-generation');
     let wallet = await kg.generateWallet({
       ticket: argv.privateKeyTicket,
-      ship: {decPoint},
+      ship: decPoint,
       boot: false,
       revision: revision
     });
