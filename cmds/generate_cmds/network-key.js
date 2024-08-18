@@ -82,7 +82,7 @@ exports.handler = async function (argv)
         const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
         const tmpWallet = await kg.generateWallet({
           ticket: tmpMasterTicket,
-          ship: decPoint = decPoint,
+          ship: decPoint,
           boot: true,
           revision: revision
         });
