@@ -60,17 +60,6 @@ exports.handler = async function (argv)
 
     let networkKeyPair = null;
     let revision = pinfo.networkKeysRevision;
-    let numericRevision = Number(revision);
-    if (argv.breach) {
-      // increment since it is obviously not the current key
-      if (!isNaN(numericRevision)) {
-        if ((numericRevision === 0) && (networkKeysSet !== true)) {
-          continue
-        } else {
-          numericRevision += 1;
-        }
-      }
-    }
 
     //see if we have a wallet to get the network keys from
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
@@ -84,7 +73,7 @@ exports.handler = async function (argv)
     //otherwise, generate network keys
     else
     {
-      const keysFileName = `${patp.substring(1)}-networkkeys-${numericRevision}.json`;
+      const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
       if(!files.fileExists(workDir, keysFileName))
       {
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
@@ -93,7 +82,7 @@ exports.handler = async function (argv)
           ticket: tmpMasterTicket,
           ship: p,
           boot: true,
-          revision: numericRevision
+          revision: revision
         });
         networkKeyPair = tmpWallet.network.keys;
         const file = files.writeFile(workDir, keysFileName, networkKeyPair);
@@ -107,10 +96,10 @@ exports.handler = async function (argv)
     }
 
     //generate network keyfile, which is used to boot the urbit
-    var networkKeyfileName = `${patp.substring(1)}-${numericRevision}.key`;
+    var networkKeyfileName = `${patp.substring(1)}-${revision}.key`;
     if(!files.fileExists(workDir, networkKeyfileName))
     {
-      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, numericRevision);
+      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, revision);
       const file = files.writeFile(workDir, networkKeyfileName, networkKeyfileContents);
       console.log(`Wrote network keyfile to: ${file}`);
     }
