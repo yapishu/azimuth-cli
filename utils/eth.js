@@ -59,8 +59,10 @@ async function createContext(argv)
 async function getPrivateKey(argv){
   let pk = null;
   let decPoint = 0;
+  let boot = false;
   if ((argv.breach) && (argv.patp)) {
     decPoint = ob.patp2dec(argv.patp);
+    boot = true
   }
   //retrieve the pk depending on the provided arguments
   if(argv.privateKey){
@@ -82,7 +84,7 @@ async function getPrivateKey(argv){
     let wallet = await kg.generateWallet({
       ticket: argv.privateKeyTicket,
       ship: decPoint,
-      boot: false,
+      boot: boot,
       revision: revision
     });
     pk = wallet.ownership.keys.private;
