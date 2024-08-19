@@ -80,18 +80,13 @@ exports.handler = async function (argv)
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
         // const bitSize = argv.bitSize ?? getBitSize(p);
         // const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
-        let boot = false;
-        let decPoint = ob.patp2dec(patp);
-        if (argv.breach) {
-          boot = true;
-        }
         const tmpWallet = await kg.generateWallet({
           ticket: argv.privateKeyTicket,
-          ship: decPoint,
-          boot: boot,
+          ship: p,
+          boot: true,
           revision: revision
         });
-        console.log(`Generated network keys for ${patp}: ${argv.privateKeyTicket}, ${boot}, ${revision}`);
+        console.log(`Generated network keys for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
         networkKeyPair = tmpWallet.network.keys;
         const file = files.writeFile(workDir, keysFileName, networkKeyPair);
         pk = tmpWallet.ownership.keys.private;
@@ -108,7 +103,7 @@ exports.handler = async function (argv)
     var networkKeyfileName = `${patp.substring(1)}-${revision}.key`;
     if(!files.fileExists(workDir, networkKeyfileName))
     {
-      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, revision);
+      var networkKeyfileContents = kg.generateKeyfile(networkKeyPair, p, Number(revision));
       const file = files.writeFile(workDir, networkKeyfileName, networkKeyfileContents);
       console.log(`Wrote network keyfile to: ${file}`);
     }
