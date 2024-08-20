@@ -80,11 +80,15 @@ exports.handler = async function (argv)
         // use the wallet utils to generate the keypair. We wont keep the wallet, but only they network keys
         // const bitSize = argv.bitSize ?? getBitSize(p);
         // const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
+        let useRev = revision;
+        if (revision !== 0) {
+          useRev = revision - 1;
+        }
         const tmpWallet = await kg.generateWallet({
           ticket: argv.privateKeyTicket,
           ship: p,
           boot: true,
-          revision: revision
+          revision: useRev
         });
         console.log(`Generated network keys for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
         networkKeyPair = tmpWallet.network.keys;
@@ -112,17 +116,4 @@ exports.handler = async function (argv)
       console.log(`${networkKeyfileName} already exists, will not recreate.`);
     }
   }
-}
-
-const MIN_STAR = 256;
-const MIN_PLANET = 65536;
-const PLANET_ENTROPY_BITS = 64;
-const STAR_ENTROPY_BITS = 128;
-const GALAXY_ENTROPY_BITS = 384;
-
-const getBitSize = point =>
-  point < MIN_STAR
-    ? GALAXY_ENTROPY_BITS
-    : point < MIN_PLANET
-    ? STAR_ENTROPY_BITS
-    : PLANET_ENTROPY_BITS;
+} 
