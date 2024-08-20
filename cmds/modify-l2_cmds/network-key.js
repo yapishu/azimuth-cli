@@ -52,8 +52,12 @@ exports.handler = async function (argv)
       networkKeyPair = files.readJsonObject(workDir, keysFileName);
     }
     else{
-      console.error(`Could not find network keys for ${patp}: provide them either via wallet or network key file.`);
+      console.error(`Could not find network keys for ${patp} (${keysFileName}): provide them either via wallet or network key file.`);
       process.exit(1);
+    }
+    if((argv.breach) && (currentKeys.auth === networkKeyPair.auth.public || currentKeys.crypt === networkKeyPair.crypt.public)){
+      // if reusing key material during breach we need to decrement the revision number
+      revision = Number(revision) - 1;
     }
     argv.revision = revision;
     const privateKey = await eth.getPrivateKey(argv);
