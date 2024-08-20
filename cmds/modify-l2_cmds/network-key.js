@@ -41,20 +41,8 @@ exports.handler = async function (argv)
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
     argv.point = patp;
-    let revision = currentRevision; // this is +1 with the --breach flag
-    if(argv.breach){
-      // we want the next key revision if breach
-      console.log('Generating keys for breaching');
-      revision = `${Number(revision)+1}`;
-    }
-    argv.revision = revision;
-    const privateKey = await eth.getPrivateKey(argv);
-    console.log(`Generated private key for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
-    const account = new Accounts().privateKeyToAccount(privateKey);
-    const signingAddress = account.address;
-    console.log(`Signing address: ${signingAddress}`);
+    let revision = currentRevision;
     const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
-    
     let networkKeyPair = null;
     if(wallet){
       networkKeyPair = wallet.network.keys;
@@ -66,6 +54,17 @@ exports.handler = async function (argv)
       console.error(`Could not find network keys for ${patp}: provide them either via wallet or network key file.`);
       process.exit(1);
     }
+    if((argv.breach) && (currentKeys.auth !== networkKeyPair.auth.public || currentKeys.crypt !== networkKeyPair.crypt.public)){
+      // we want the next key revision if breach and not reusing key material
+      console.log('Generating keys for breaching');
+      revision = `${Number(revision)+1}`;
+    }
+    argv.revision = revision;
+    const privateKey = await eth.getPrivateKey(argv);
+    console.log(`Generated private key for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
+    const account = new Accounts().privateKeyToAccount(privateKey);
+    const signingAddress = account.address;
+    console.log(`Signing address: ${signingAddress}`);
 
     if(!(await rollerApi.canConfigureKeys(rollerClient, patp, signingAddress))){
       console.log(`Cannot set network keys for ${patp}, must be owner or management proxy.`);
