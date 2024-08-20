@@ -83,9 +83,6 @@ exports.handler = async function (argv)
         let useRev = revision;
         if (revision !== 0) {
           if (argv.breach) {
-            useRev = revision - 2;
-          } 
-          else if (!argv.breach) {
             useRev = revision - 1;
           }
         }
