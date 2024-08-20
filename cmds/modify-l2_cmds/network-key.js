@@ -48,16 +48,17 @@ exports.handler = async function (argv)
       networkKeyPair = wallet.network.keys;
     }
     else if(files.fileExists(workDir, keysFileName)){
+      console.log(`Reading network keys from ${keysFileName}`);
       networkKeyPair = files.readJsonObject(workDir, keysFileName);
     }
     else{
       console.error(`Could not find network keys for ${patp}: provide them either via wallet or network key file.`);
       process.exit(1);
     }
-    if((argv.breach) && (currentKeys.auth !== networkKeyPair.auth.public || currentKeys.crypt !== networkKeyPair.crypt.public)){
-      // we want the next key revision if breach and not reusing key material
+    if((argv.breach) && (currentKeys.auth === networkKeyPair.auth.public || currentKeys.crypt === networkKeyPair.crypt.public)){
+      // if reusing key material during breach we need to decrement the revision number
       console.log('Generating keys for breaching');
-      revision = `${Number(revision)+1}`;
+      revision = Number(revision) - 1;
     }
     argv.revision = revision;
     const privateKey = await eth.getPrivateKey(argv);
