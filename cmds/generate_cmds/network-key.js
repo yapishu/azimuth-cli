@@ -81,6 +81,11 @@ exports.handler = async function (argv)
         // const bitSize = argv.bitSize ?? getBitSize(p);
         // const tmpMasterTicket = await ticket.gen_ticket_more(bitSize);
         let useRev = revision;
+        if (revision !== 0) {
+          if (argv.breach) {
+            useRev = revision - 1;
+          }
+        }
         const tmpWallet = await kg.generateWallet({
           ticket: argv.privateKeyTicket,
           ship: p,
