@@ -78,7 +78,7 @@ exports.handler = async function (argv)
         // console.log(JSON.stringify(currentKeys, null, 2));
         continue;
     }
-    else if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && !argv.breach){
+    else if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && argv.breach){
         console.log(`Breaching with existing key revision ${patp}.`);
     }
     var receipt = await rollerApi.configureKeys(rollerClient, patp, publicCrypt, publicAuth, argv.breach, signingAddress, privateKey);
