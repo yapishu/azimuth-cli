@@ -84,9 +84,6 @@ async function printDetailsFromL1(argv, p){
   const shipType = ob.clan(patp);
   const parentPatp = ob.sein(patp);
   const parentP = ob.patp2dec(parentPatp);
-  if (argv.breach) {
-    networkKeysRevision += 1;
-  }
 
   if (argv.returnDetails) {
     return {
@@ -150,9 +147,6 @@ async function printDetailsFromL2(argv, p){
   const parentPatp = ob.sein(patp);
   const parentP = ob.patp2dec(parentPatp);
   networkKeysRevision = pointInfo.network.keys.life;
-  if (argv.breach) {
-    networkKeysRevision = `${Number(networkKeysRevision) + 1}`;
-  }
   if (argv.returnDetails) {
     return {
       patp: ob.patp(p),

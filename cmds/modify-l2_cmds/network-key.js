@@ -55,10 +55,6 @@ exports.handler = async function (argv)
       console.error(`Could not find network keys for ${patp} (${keysFileName}): provide them either via wallet or network key file.`);
       process.exit(1);
     }
-    if((argv.breach) && (currentKeys.auth === networkKeyPair.auth.public || currentKeys.crypt === networkKeyPair.crypt.public)){
-      // if reusing key material during breach we need to decrement the revision number
-      revision = Number(revision) - 1;
-    }
     argv.revision = revision;
     const privateKey = await eth.getPrivateKey(argv);
     console.log(`Generated private key for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
@@ -82,7 +78,9 @@ exports.handler = async function (argv)
         // console.log(JSON.stringify(currentKeys, null, 2));
         continue;
     }
-
+    else if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && !argv.breach){
+        console.log(`Breaching with existing key revision ${patp}.`);
+    }
     var receipt = await rollerApi.configureKeys(rollerClient, patp, publicCrypt, publicAuth, argv.breach, signingAddress, privateKey);
     console.log("Tx hash: "+receipt.hash);
 
