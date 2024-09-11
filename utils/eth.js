@@ -101,6 +101,7 @@ async function getCurrentGasPrices() {
 
 async function fetchGasGwei() {
   try {
+    const axios = require("axios");
     let response = await axios.get(
       "https://api.etherscan.io/api?module=gastracker&action=gasoracle",
     );
