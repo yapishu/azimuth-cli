@@ -1,8 +1,7 @@
 const ob = require("urbit-ob");
 const ajs = require("azimuth-js");
 const _ = require("lodash");
-const details = require("../get_cmds/details");
-const { files, validate, eth, findPoints } = require("../../utils");
+const { files, validate, eth, findPoints, rollerApi } = require("../../utils");
 
 exports.command = "network-key";
 exports.desc = "Set the network key for one or more points.";
@@ -62,12 +61,7 @@ exports.handler = async function (argv) {
     var publicCrypt = ajs.utils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajs.utils.addHexPrefix(networkKeyPair.auth.public);
 
-    argv.returnDetails = true;
-    const pointInfo = await details.getPointInfo(p, argv);
-    if (pointInfo === null) {
-      console.log(`Could not get details for ${patp}.`);
-      process.exit(1);
-    }
+    const pointInfo = await rollerApi.getPoint(rollerClient, patp);
     const currentKeys = pointInfo.network.keys;
 
     if (
