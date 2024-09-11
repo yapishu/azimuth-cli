@@ -6,4 +6,3 @@ COPY . /app/
 RUN npm install
 RUN ln -s /app/cli.js /usr/bin/azi
 CMD ["node", "cli.js"]
-
