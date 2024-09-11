@@ -87,7 +87,7 @@ exports.handler = async function (argv) {
     // set gas if not provided
     gasPrices = await eth.fetchGasGwei();
     if (argv.gas === 30000) {
-      argv.gas = gasPrices.safeGasPrice;
+      argv.gas = gasPrices.proposeGasPrice;
     }
 
     // Create and Send Tx

@@ -4,6 +4,7 @@ const files = require("./files");
 const { Accounts } = require("web3-eth-accounts");
 const { env } = require("yargs");
 const ob = require("urbit-ob");
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 function initWeb3(argv) {
   if (argv.useMainnet) {
@@ -117,11 +118,15 @@ async function fetchGasGwei() {
     const proposeGasPrice = response.data.result.ProposeGasPrice;
     const baseFee = response.data.result.suggestBaseFee;
     return {
-      safeGasPrice: Web3.utils.toBN(parseFloat(safeGasPrice) * 1e9).toNumber(),
-      proposeGasPrice: Web3.utils
-        .toBN(parseFloat(proposeGasPrice) * 1e9)
+      safeGasPrice: Web3.utils
+        .toBN(Math.round(parseFloat(safeGasPrice) * 1e9))
         .toNumber(),
-      baseFee: Web3.utils.toBN(parseFloat(baseFee) * 1e9).toNumber(),
+      proposeGasPrice: Web3.utils
+        .toBN(Math.round(parseFloat(proposeGasPrice) * 1e9))
+        .toNumber(),
+      baseFee: Web3.utils
+        .toBN(Math.round(parseFloat(baseFee) * 1e9))
+        .toNumber(),
     };
   } catch (error) {
     console.error("Error fetching gas prices:", error);
