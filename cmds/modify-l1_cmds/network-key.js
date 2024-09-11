@@ -85,7 +85,7 @@ exports.handler = async function (argv) {
     }
 
     // set gas if not provided
-    gasPrices = await fetchGasGwei();
+    gasPrices = await eth.fetchGasGwei();
     if (argv.gas === 30000) {
       argv.gas = gasPrices.safeGasPrice;
     }

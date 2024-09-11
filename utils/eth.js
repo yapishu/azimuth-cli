@@ -191,7 +191,7 @@ async function setGasSignSendAndSaveTransaction(
   //save the receipt if the transacation was accepted
   // status will be false if the blockchain rejected the transaction
   if (receipt != null && receipt.status) {
-    let receiptFileName = patp.substring(1) + `-receipt-${actionName}.json`;
+    let receiptFileName = patp.substring(1) + `-receipt-L1-${actionName}.json`;
     files.writeFile(workDir, receiptFileName, receipt);
     console.error("Transaction accepted by the blockchain.");
   } else {
