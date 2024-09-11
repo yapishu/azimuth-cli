@@ -62,6 +62,7 @@ exports.handler = async function (argv) {
     var publicCrypt = ajs.utils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajs.utils.addHexPrefix(networkKeyPair.auth.public);
 
+    argv.returnDetails = true;
     const pointInfo = await details.getPointInfo(p, argv);
     if (pointInfo === null) {
       console.log(`Could not get details for ${patp}.`);
