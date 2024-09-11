@@ -32,7 +32,13 @@ exports.handler = async function (argv) {
 
     //retrieve the network keypair
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
-    const revision = 1; //TODO: support bumping the revision (by looking it up on-chain)
+
+    const rollerClient = rollerApi.createClient(argv);
+    const pointInfo = await rollerApi.getPoint(rollerClient, patp);
+    const currentKeys = pointInfo.network.keys;
+
+    const revision = currentKeys.life; //network key revision number == life.
+    argv.revision = revision;
     const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
 
     let networkKeyPair = null;
@@ -61,9 +67,6 @@ exports.handler = async function (argv) {
     var publicCrypt = ajs.utils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajs.utils.addHexPrefix(networkKeyPair.auth.public);
 
-    const pointInfo = await rollerApi.getPoint(rollerClient, patp);
-    const currentKeys = pointInfo.network.keys;
-
     if (
       currentKeys.crypt == publicCrypt &&
       currentKeys.auth == publicAuth &&
@@ -79,6 +82,12 @@ exports.handler = async function (argv) {
       argv.breach
     ) {
       console.log(`Breaching with existing key revision ${patp}.`);
+    }
+
+    // set gas if not provided
+    gasPrices = await fetchGasGwei();
+    if (argv.gas === 30000) {
+      argv.gas = gasPrices.safeGasPrice;
     }
 
     // Create and Send Tx
