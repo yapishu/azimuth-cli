@@ -1,6 +1,7 @@
 const ob = require("urbit-ob");
 const ajs = require("azimuth-js");
 const _ = require("lodash");
+const details = require("../get_cmds/details");
 const { files, validate, eth, findPoints } = require("../../utils");
 
 exports.command = "network-key";
@@ -60,6 +61,13 @@ exports.handler = async function (argv) {
     //we are using the public keys because in the contract only the public keys should be visible, the private keys are used to generate the arvo key file
     var publicCrypt = ajs.utils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajs.utils.addHexPrefix(networkKeyPair.auth.public);
+
+    const pointInfo = await details.getPointInfo(p, argv);
+    if (pointInfo === null) {
+      console.log(`Could not get details for ${patp}.`);
+      process.exit(1);
+    }
+    const currentKeys = pointInfo.network.keys;
 
     if (
       currentKeys.crypt == publicCrypt &&
