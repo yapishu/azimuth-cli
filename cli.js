@@ -71,7 +71,7 @@ function startServer() {
       const fullCommand = `${command} ${subcommand}`;
       console.log(`Received command: ${fullCommand} with args:`, args);
 
-      // merge server global defaults with client-provided args
+      // merge global defaults with client-provided args
       const mergedArgs = { ...argv, ...args };
 
       const result = await handleCommand(fullCommand, mergedArgs);
@@ -92,7 +92,7 @@ async function handleCommand(command, args) {
     const result = await yargs
       .commandDir("cmds")
       .demandCommand()
-      .parseAsync(`${command}`, { ...args });
+      .parseAsync(`${command} ${args.point}`, args);
 
     return result || `Executed ${command} with args ${JSON.stringify(args)}`;
   } catch (error) {
