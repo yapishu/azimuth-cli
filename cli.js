@@ -66,12 +66,15 @@ function startServer() {
   app.post("/api/:command/:subcommand", async (req, res) => {
     try {
       const { command, subcommand } = req.params;
-      const args = req.body || {}; // parse args from the request body
+      const args = req.body || {}; // args from the request body
 
       const fullCommand = `${command} ${subcommand}`;
       console.log(`Received command: ${fullCommand} with args:`, args);
 
-      const result = await handleCommand(fullCommand, args);
+      // merge server global defaults with client-provided args
+      const mergedArgs = { ...argv, ...args };
+
+      const result = await handleCommand(fullCommand, mergedArgs);
       res.json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
