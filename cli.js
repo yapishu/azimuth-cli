@@ -31,7 +31,9 @@ function startServer() {
   const app = express();
   app.use(express.json());
 
-  const config = files.readJsonObject("", argv["config-file"]);
+  const config = argv["config-file"]
+    ? files.readJsonObject("", argv["config-file"])
+    : {};
 
   app.post("/api/breach", async (req, res) => {
     try {
@@ -40,6 +42,7 @@ function startServer() {
         ...defaultArgs,
         ...config,
         ...req.body,
+        "config-file": argv["config-file"] || defaultArgs["config-file"],
       };
       const result = await breachPoint(mergedArgs);
 

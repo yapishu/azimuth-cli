@@ -1,81 +1,78 @@
-const ob = require('urbit-ob')
-const ajsUtils = require('azimuth-js').utils;
-const axios = require('axios')
-const {JSONRPCClient } = require('json-rpc-2.0')
-const validate = require('./validate')
+const ob = require("urbit-ob");
+const ajsUtils = require("azimuth-js").utils;
+const axios = require("axios");
+const { JSONRPCClient } = require("json-rpc-2.0");
+const validate = require("./validate");
 
-const { hexToBytes } = require('web3-utils');
-const { ecdsaSign } = require('secp256k1');
+const { hexToBytes } = require("web3-utils");
+const { ecdsaSign } = require("secp256k1");
 
 const CRYPTO_SUITE_VERSION = 1;
 let requestCounter = 0;
 
-async function selectDataSource(argv){
-  if(argv.useRoller){
-    try{
+async function selectDataSource(argv) {
+  if (argv.useRoller) {
+    try {
       await getRollerConfig(createClient(argv)); //will throw a connection refused error if not available
-      return 'roller';
+      return "roller";
+    } catch (error) {
+      throw "Roller not available. You required the usage of the roller, please ensure it is running and can be reached.";
     }
-    catch(error){
-      throw 'Roller not available. You required the usage of the roller, please ensure it is running and can be reached.'
-    }
-  }
-  else if(argv.useAzimuth){
-    return 'azimuth';
-  }
-  else{
+  } else if (argv.useAzimuth) {
+    return "azimuth";
+  } else {
     //check if the roller client is available;
     // if yes, use the roller, otherwise use azimuth
-    try{
+    try {
       await getRollerConfig(createClient(argv)); //will throw a connection refused error if not available
-      return 'roller';
-    }
-    catch(error){
-      console.log('Roller not available, falling back to using azimuth, information might not be correct.');
-      return 'azimuth';
+      return "roller";
+    } catch (error) {
+      console.log(
+        "Roller not available, falling back to using azimuth, information might not be correct.",
+      );
+      return "azimuth";
     }
   }
-  throw 'could not determine data source';
+  throw "could not determine data source";
 }
 
-function nextId(){
+function nextId() {
   requestCounter++;
   return requestCounter.toString(); //the roller rpc need a string ID, otherwise it does it does not work
 }
 
-function createClient(argv){
-  let rollerUrl = 
-    argv.rollerProvider == 'local' 
-    ? argv.rollerLocal 
-    : argv.rollerProvider == 'urbit' 
-    ? argv.rollerUrbit 
-    : null;
-  //console.log(rollerUrl);
-  if(rollerUrl == null){
-    rollerUrl = "http://localhost:8080/v1/roller";
+function createClient(argv) {
+  let rollerUrl;
+  if (argv.rollerProvider === "local" && argv.rollerLocal) {
+    rollerUrl = argv.rollerLocal;
+  } else if (argv.rollerProvider === "urbit" && argv.rollerUrbit) {
+    rollerUrl = argv.rollerUrbit;
+  } else {
+    rollerUrl = "http://127.0.0.1:8080/v1/roller";
   }
-  var client = new JSONRPCClient(async function (jsonRPCRequest)
-  {
+
+  var client = new JSONRPCClient(async function (jsonRPCRequest) {
     try {
-      //console.log(JSON.stringify(jsonRPCRequest));
-      var response = await axios.post(rollerUrl, JSON.stringify(jsonRPCRequest));
+      var response = await axios.post(
+        rollerUrl,
+        JSON.stringify(jsonRPCRequest),
+      );
       if (response.status === 200) {
         const jsonRPCResponse = response.data;
         client.receive(jsonRPCResponse);
       } else {
         console.error(`Received non-200 response: ${response.status}`);
       }
-    } catch(error) {
-      console.error('Error sending request:', error.message);
+    } catch (error) {
+      console.error("Error sending request:", error.message);
     }
   }, nextId);
   return client;
 }
 
 function signTransactionHash(msg, pk) {
-  const pkBuffer = Buffer.from(pk, 'hex');
-  if(!ajsUtils.isValidPrivate(pkBuffer))
-      throw 'pk is not valid';
+  const pkBuffer = Buffer.from(pk, "hex");
+  if (!ajsUtils.isValidPrivate(pkBuffer)) throw "pk is not valid";
 
   //  msg is a keccak-256 hash
   //
@@ -85,56 +82,56 @@ function signTransactionHash(msg, pk) {
   const ethSignature = new Uint8Array(65);
   ethSignature.set(signature);
   ethSignature[64] = recid;
-  return `0x${Buffer.from(ethSignature).toString('hex')}`;
+  return `0x${Buffer.from(ethSignature).toString("hex")}`;
 }
 
-function getNonce(client, params){
+function getNonce(client, params) {
   const ship = params.from.ship;
   const nonceParams = {
-    from: params.from
+    from: params.from,
   };
   return client.request("getNonce", nonceParams);
 }
 
 //use this if signing via metamask or wallet connect
-async function prepareForSigning(client, method, params){
+async function prepareForSigning(client, method, params) {
   const nonce = await getNonce(client, params);
   const hashParams = {
     tx: method,
     nonce: nonce,
     from: params.from,
-    data: params.data
-  }
+    data: params.data,
+  };
   return await client.request("prepareForSigning", hashParams);
 }
 
 //use this if singing directly with pk
-async function getUnsignedTx(client, method, params){
+async function getUnsignedTx(client, method, params) {
   const nonce = await getNonce(client, params);
   const hashParams = {
     tx: method,
     nonce: nonce,
     from: params.from,
-    data: params.data
-  }
+    data: params.data,
+  };
   var res = await client.request("getUnsignedTx", hashParams);
   //console.log("RESULT: "+res);
   return res;
 }
 
-async function addSignature(client, method, params, privateKey){
+async function addSignature(client, method, params, privateKey) {
   const hash = await getUnsignedTx(client, method, params);
   const sig = signTransactionHash(hash, privateKey);
   params["sig"] = sig;
   return params;
 }
 
-function createTransactionReceipt(method, params, txHash){
+function createTransactionReceipt(method, params, txHash) {
   return {
     sig: params.sig,
     hash: txHash,
-    type: method
-  }
+    type: method,
+  };
 }
 
 //============================================
@@ -143,43 +140,49 @@ function createTransactionReceipt(method, params, txHash){
 // Roller JSON-RPC API documentation:
 // https://documenter.getpostman.com/view/16338962/Tzm3nx7x
 
-function getRollerConfig(client){
-  return client.request("getRollerConfig", { });
+function getRollerConfig(client) {
+  return client.request("getRollerConfig", {});
 }
 
-function getAllPending(client){
-  return client.request("getAllPending", { });
+function getAllPending(client) {
+  return client.request("getAllPending", {});
 }
 
-function getPendingByAddress(client, address){
+function getPendingByAddress(client, address) {
   return client.request("getPendingByAddress", { address: address });
 }
 
-function whenNextBatch(client){
-  return client.request("whenNextBatch", { });
+function whenNextBatch(client) {
+  return client.request("whenNextBatch", {});
 }
 
-
-function getPoint(client, point){
+function getPoint(client, point) {
   const patp = ob.patp(validate.point(point, true));
   return client.request("getPoint", { ship: patp });
 }
 
-function getShips(client, address){
+function getShips(client, address) {
   return client.request("getShips", { address: address });
 }
 
-function getSpawned(client, point){
+function getSpawned(client, point) {
   const patp = ob.patp(validate.point(point, true));
   return client.request("getSpawned", { ship: patp });
 }
 
-function getUnspawned(client, point){
+function getUnspawned(client, point) {
   const patp = ob.patp(validate.point(point, true));
   return client.request("getUnspawned", { ship: patp });
 }
 
-async function spawn(client, parentPoint, spawnPoint, newOwnerAddress, signingAddress, privateKey){
+async function spawn(
+  client,
+  parentPoint,
+  spawnPoint,
+  newOwnerAddress,
+  signingAddress,
+  privateKey,
+) {
   const parentPatp = ob.patp(validate.point(parentPoint, true));
   const spawnPatp = ob.patp(validate.point(spawnPoint, true));
   const newOwnerAddressValid = validate.address(newOwnerAddress, true);
@@ -191,12 +194,12 @@ async function spawn(client, parentPoint, spawnPoint, newOwnerAddress, signingAd
     address: signingAddressValid,
     from: {
       ship: parentPatp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       ship: spawnPatp,
       address: newOwnerAddressValid,
-    }
+    },
   };
   const method = "spawn";
   params = await addSignature(client, method, params, privateKey);
@@ -204,7 +207,14 @@ async function spawn(client, parentPoint, spawnPoint, newOwnerAddress, signingAd
   return createTransactionReceipt(method, params, tx);
 }
 
-async function transferPoint(client, point, reset, newOwnerAddress, signingAddress, privateKey){
+async function transferPoint(
+  client,
+  point,
+  reset,
+  newOwnerAddress,
+  signingAddress,
+  privateKey,
+) {
   const patp = ob.patp(validate.point(point, true));
   const newOwnerAddressValid = validate.address(newOwnerAddress, true);
   const signingAddressValid = validate.address(signingAddress, true);
@@ -214,12 +224,12 @@ async function transferPoint(client, point, reset, newOwnerAddress, signingAddre
     address: signingAddressValid,
     from: {
       ship: patp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       reset: reset,
       address: newOwnerAddressValid,
-    }
+    },
   };
   const method = "transferPoint";
   params = await addSignature(client, method, params, privateKey);
@@ -227,7 +237,13 @@ async function transferPoint(client, point, reset, newOwnerAddress, signingAddre
   return createTransactionReceipt(method, params, tx);
 }
 
-async function setManagementProxy(client, point, managementProxyAddress, signingAddress, privateKey){
+async function setManagementProxy(
+  client,
+  point,
+  managementProxyAddress,
+  signingAddress,
+  privateKey,
+) {
   const patp = ob.patp(validate.point(point, true));
   const targetAddress = validate.address(managementProxyAddress, true);
   const signingAddressValid = validate.address(signingAddress, true);
@@ -237,11 +253,11 @@ async function setManagementProxy(client, point, managementProxyAddress, signing
     address: signingAddressValid,
     from: {
       ship: patp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       address: targetAddress,
-    }
+    },
   };
   const method = "setManagementProxy";
   params = await addSignature(client, method, params, privateKey);
@@ -249,7 +265,13 @@ async function setManagementProxy(client, point, managementProxyAddress, signing
   return createTransactionReceipt(method, params, tx);
 }
 
-async function setSpawnProxy(client, point, spawnProxyAddress, signingAddress, privateKey){
+async function setSpawnProxy(
+  client,
+  point,
+  spawnProxyAddress,
+  signingAddress,
+  privateKey,
+) {
   const patp = ob.patp(validate.point(point, true));
   const targetAddress = validate.address(spawnProxyAddress, true);
   const signingAddressValid = validate.address(signingAddress, true);
@@ -259,11 +281,11 @@ async function setSpawnProxy(client, point, spawnProxyAddress, signingAddress, p
     address: signingAddressValid,
     from: {
       ship: patp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       address: targetAddress,
-    }
+    },
   };
   const method = "setSpawnProxy";
   params = await addSignature(client, method, params, privateKey);
@@ -271,7 +293,13 @@ async function setSpawnProxy(client, point, spawnProxyAddress, signingAddress, p
   return createTransactionReceipt(method, params, tx);
 }
 
-async function setTransferProxy(client, point, transferProxyAddress, signingAddress, privateKey){
+async function setTransferProxy(
+  client,
+  point,
+  transferProxyAddress,
+  signingAddress,
+  privateKey,
+) {
   const patp = ob.patp(validate.point(point, true));
   const targetAddress = validate.address(transferProxyAddress, true);
   const signingAddressValid = validate.address(signingAddress, true);
@@ -281,11 +309,11 @@ async function setTransferProxy(client, point, transferProxyAddress, signingAddr
     address: signingAddressValid,
     from: {
       ship: patp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       address: targetAddress,
-    }
+    },
   };
   const method = "setTransferProxy";
   params = await addSignature(client, method, params, privateKey);
@@ -293,7 +321,15 @@ async function setTransferProxy(client, point, transferProxyAddress, signingAddr
   return createTransactionReceipt(method, params, tx);
 }
 
-async function configureKeys(client, point, encryptPublic, authPublic, breach, signingAddress, privateKey){
+async function configureKeys(
+  client,
+  point,
+  encryptPublic,
+  authPublic,
+  breach,
+  signingAddress,
+  privateKey,
+) {
   const patp = ob.patp(validate.point(point, true));
   const signingAddressValid = validate.address(signingAddress, true);
   const proxy = await getManagementProxyType(client, patp, signingAddress); //either the owner or the manage proxy can set the keys
@@ -302,14 +338,14 @@ async function configureKeys(client, point, encryptPublic, authPublic, breach, s
     address: signingAddressValid,
     from: {
       ship: patp,
-      proxy: proxy
+      proxy: proxy,
     },
     data: {
       encrypt: encryptPublic,
       auth: authPublic,
       cryptoSuite: CRYPTO_SUITE_VERSION.toString(),
-      breach: breach
-    }
+      breach: breach,
+    },
   };
   const method = "configureKeys";
   params = await addSignature(client, method, params, privateKey);
@@ -317,30 +353,45 @@ async function configureKeys(client, point, encryptPublic, authPublic, breach, s
   return createTransactionReceipt(method, params, tx);
 }
 
-async function getManagementProxyType(client, point, signingAddress){
+async function getManagementProxyType(client, point, signingAddress) {
   const pointInfo = await getPoint(client, point);
-  if(ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
-    return 'own';
-  else if(ajsUtils.addressEquals(pointInfo.ownership.managementProxy.address, signingAddress))
-    return 'manage';
+  if (ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
+    return "own";
+  else if (
+    ajsUtils.addressEquals(
+      pointInfo.ownership.managementProxy.address,
+      signingAddress,
+    )
+  )
+    return "manage";
   return undefined;
 }
 
-async function getSpawnProxyType(client, point, signingAddress){
+async function getSpawnProxyType(client, point, signingAddress) {
   const pointInfo = await getPoint(client, point);
-  if(ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
-    return 'own';
-  else if(ajsUtils.addressEquals(pointInfo.ownership.spawnProxy.address, signingAddress))
-    return 'spawn';
+  if (ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
+    return "own";
+  else if (
+    ajsUtils.addressEquals(
+      pointInfo.ownership.spawnProxy.address,
+      signingAddress,
+    )
+  )
+    return "spawn";
   return undefined;
 }
 
-async function getTransferProxyType(client, point, signingAddress){
+async function getTransferProxyType(client, point, signingAddress) {
   const pointInfo = await getPoint(client, point);
-  if(ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
-    return 'own';
-  else if(ajsUtils.addressEquals(pointInfo.ownership.transferProxy.address, signingAddress))
-    return 'transfer';
+  if (ajsUtils.addressEquals(pointInfo.ownership.owner.address, signingAddress))
+    return "own";
+  else if (
+    ajsUtils.addressEquals(
+      pointInfo.ownership.transferProxy.address,
+      signingAddress,
+    )
+  )
+    return "transfer";
   return undefined;
 }
 
@@ -351,29 +402,47 @@ async function isOwner(client, point, address) {
 
 async function isManagementProxy(client, point, address) {
   const pointInfo = await getPoint(client, point);
-  return ajsUtils.addressEquals(pointInfo.ownership.managementProxy.address, address);
+  return ajsUtils.addressEquals(
+    pointInfo.ownership.managementProxy.address,
+    address,
+  );
 }
 
 async function isSpawnProxy(client, point, address) {
   const pointInfo = await getPoint(client, point);
-  return ajsUtils.addressEquals(pointInfo.ownership.spawnProxy.address, address);
+  return ajsUtils.addressEquals(
+    pointInfo.ownership.spawnProxy.address,
+    address,
+  );
 }
 
 async function isTransferProxy(client, point, address) {
   const pointInfo = await getPoint(client, point);
-  return ajsUtils.addressEquals(pointInfo.ownership.transferProxy.address, address);
+  return ajsUtils.addressEquals(
+    pointInfo.ownership.transferProxy.address,
+    address,
+  );
 }
 
 async function canConfigureKeys(client, point, address) {
-  return await isOwner(client, point, address) || await isManagementProxy(client, point, address);
+  return (
+    (await isOwner(client, point, address)) ||
+    (await isManagementProxy(client, point, address))
+  );
 }
 
 async function canTransfer(client, point, address) {
-  return await isOwner(client, point, address) || await isTransferProxy(client, point, address);
+  return (
+    (await isOwner(client, point, address)) ||
+    (await isTransferProxy(client, point, address))
+  );
 }
 
 async function canSpawn(client, point, address) {
-  return await isOwner(client, point, address) || await isSpawnProxy(client, point, address);
+  return (
+    (await isOwner(client, point, address)) ||
+    (await isSpawnProxy(client, point, address))
+  );
 }
 
 module.exports = {
@@ -406,6 +475,5 @@ module.exports = {
   isTransferProxy,
   canConfigureKeys,
   canTransfer,
-  canSpawn
-}
-
+  canSpawn,
+};

@@ -16,7 +16,10 @@ async function breachPoint(argv) {
     const ticket = await fetchMasterTicket(patp, argv.auth);
 
     console.log(`Fetching details for ${patp}...`);
-    const pointInfo = await details.getPointInfo(patp, { returnDetails: true });
+    const pointInfo = await details.getPointInfo(patp, {
+      returnDetails: true,
+      ...argv,
+    });
 
     if (!pointInfo) {
       throw new Error(`Failed to fetch details for ${patp}. Aborting.`);
