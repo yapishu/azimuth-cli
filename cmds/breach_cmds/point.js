@@ -32,7 +32,7 @@ async function breachPoint(argv) {
     }
 
     console.log("Point Info:", JSON.stringify(pointInfo, null, 2));
-    const { dominion } = pointInfo.dominion;
+    const dominion = pointInfo.dominion;
 
     console.log(`Generating network key with breach for ${patp}...`);
     const networkKeyData = await generate.handler(argv);
