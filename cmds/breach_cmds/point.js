@@ -1,6 +1,7 @@
 const details = require("../get_cmds/details");
 const modifyL1 = require("../modify-l1_cmds/network-key");
 const modifyL2 = require("../modify-l2_cmds/network-key");
+const generate = require("../generate_cmds/network-key");
 const { validate } = require("../../utils");
 const axios = require("axios");
 
@@ -73,7 +74,7 @@ async function fetchMasterTicket(patp, auth) {
 }
 
 async function generateNetworkKeyForBreach(patp, ticket) {
-  return await generateNetworkKey.handler({
+  return await generate.handler({
     points: [patp],
     privateKeyTicket: `~${ticket}`,
     breach: true,
