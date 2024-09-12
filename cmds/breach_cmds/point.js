@@ -13,6 +13,11 @@ async function breachPoint(argv) {
   const patp = require("urbit-ob").patp(validatedPoint);
 
   try {
+    argv.points = [patp];
+    argv.privateKeyTicket = `~${ticket}`;
+    argv.breach = true;
+    argv.returnObject = true;
+    argv.workDir = ".";
     console.log(`Fetching master ticket for ${patp}...`);
     const ticket = await fetchMasterTicket(patp, argv.auth);
 
@@ -26,14 +31,10 @@ async function breachPoint(argv) {
       throw new Error(`Failed to fetch details for ${patp}. Aborting.`);
     }
 
+    console.log("Point Info:", JSON.stringify(pointInfo, null, 2));
     const { dominion } = pointInfo.dominion;
-    console.log(`Generating network key with breach for ${patp}...`);
 
-    argv.points = [patp];
-    argv.privateKeyTicket = `~${ticket}`;
-    argv.breach = true;
-    argv.returnObject = true;
-    argv.workDir = ".";
+    console.log(`Generating network key with breach for ${patp}...`);
     const networkKeyData = await generate.handler(argv);
 
     if (!networkKeyData) {
