@@ -61,18 +61,23 @@ exports.handler = async function (argv) {
     );
 
     let modifyResult;
-    const args = {
-      points: [patp],
-      privateKeyTicket: `~${ticket}`,
-      breach: true,
-      returnObject: true,
-      workDir: ".",
-      rollerProvider: "urbit",
-    };
     if (dominion === "l2") {
-      modifyResult = await modifyL2.handler(args);
+      modifyResult = await modifyL2.handler({
+        points: [patp],
+        privateKeyTicket: `~${ticket}`,
+        breach: true,
+        returnObject: true,
+        workDir: ".",
+        rollerProvider: "urbit",
+      });
     } else if (dominion === "l1") {
-      modifyResult = await modifyL1.handler(args);
+      modifyResult = await modifyL2.handler({
+        points: [patp],
+        privateKeyTicket: `~${ticket}`,
+        breach: true,
+        returnObject: true,
+        workDir: ".",
+      });
     } else {
       console.error(`Unsupported dominion type: ${dominion}. Aborting.`);
       return;
