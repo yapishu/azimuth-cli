@@ -7,7 +7,7 @@ const argv = yargs
   .options(getUniversalOptions())
   .help()
   .option("server", {
-    describe: "Start in server mode to handle actions via REST",
+    describe: "Start in server mode to handle actions via HTTP",
     type: "boolean",
     default: false,
   })
