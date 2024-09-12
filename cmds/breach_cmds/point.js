@@ -37,7 +37,7 @@ async function breachPoint(argv) {
     console.log(`Generating network key with breach for ${patp}...`);
     argv.networkKeyData = await generate.handler(argv);
 
-    if (!networkKeyData) {
+    if (!argv.networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
     }
 
