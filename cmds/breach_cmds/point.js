@@ -28,7 +28,13 @@ async function breachPoint(argv) {
 
     const { dominion } = pointInfo.dominion;
     console.log(`Generating network key with breach for ${patp}...`);
-    const networkKeyData = await generateNetworkKeyForBreach(patp, ticket);
+
+    argv.points = [patp];
+    argv.privateKeyTicket = `~${ticket}`;
+    argv.breach = true;
+    argv.returnObject = true;
+    argv.workDir = ".";
+    const networkKeyData = await generate.handler(argv);
 
     if (!networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
@@ -37,10 +43,6 @@ async function breachPoint(argv) {
     console.log(
       `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
     );
-
-    argv.privateKeyTicket = `~${ticket}`;
-    argv.breach = true;
-    argv.points = [patp];
 
     let modifyResult;
     if (dominion === "l2") {
@@ -71,16 +73,6 @@ async function fetchMasterTicket(patp, auth) {
     },
   });
   return response.data.ticket;
-}
-
-async function generateNetworkKeyForBreach(patp, ticket) {
-  return await generate.handler({
-    points: [patp],
-    privateKeyTicket: `~${ticket}`,
-    breach: true,
-    returnObject: true,
-    workDir: ".",
-  });
 }
 
 exports.command = "point";
