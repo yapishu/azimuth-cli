@@ -35,7 +35,7 @@ async function breachPoint(argv) {
     const dominion = pointInfo.dominion;
 
     console.log(`Generating network key with breach for ${patp}...`);
-    const networkKeyData = await generate.handler(argv);
+    argv.networkKeyData = await generate.handler(argv);
 
     if (!networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
