@@ -68,6 +68,7 @@ exports.handler = async function (argv) {
         breach: true,
         receipt: argv.returnObject,
         workDir: argv.workDir,
+        rollerProvider: "urbit",
       });
     } else {
       // assume L1 if not l2
