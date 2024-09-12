@@ -2,8 +2,9 @@
 
 const express = require("express");
 const { files } = require("./utils");
+const yargs = require("yargs");
 
-const argv = require("yargs")
+const argv = yargs
   .options(getUniversalOptions())
   .help()
   .option("server", {
@@ -11,12 +12,15 @@ const argv = require("yargs")
     type: "boolean",
     default: false,
   })
-  .config("config-file", (configFile) => files.readJsonObject("", configFile));
+  .config("config-file", (configFile) => {
+    const config = files.readJsonObject("", configFile);
+    return config;
+  }).argv;
 
 if (argv.server) {
   startServer();
 } else {
-  require("yargs")
+  yargs
     .scriptName("azimuth-cli")
     .commandDir("cmds")
     .demandCommand()
@@ -81,21 +85,16 @@ function startServer() {
 }
 
 async function handleCommand(command, args) {
-  const yargs = require("yargs");
-  return new Promise((resolve, reject) => {
-    yargs
+  try {
+    const result = await yargs
       .commandDir("cmds")
       .demandCommand()
-      .parse(`${command}`, { ...args }, (err, argv, output) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(
-            output || `Executed ${command} with args ${JSON.stringify(args)}`,
-          );
-        }
-      });
-  });
+      .parseAsync(`${command}`, { ...args });
+
+    return result || `Executed ${command} with args ${JSON.stringify(args)}`;
+  } catch (error) {
+    throw error;
+  }
 }
 
 process.on("SIGTERM", () => {
