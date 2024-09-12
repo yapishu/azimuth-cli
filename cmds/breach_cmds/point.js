@@ -2,6 +2,7 @@
 const details = require("../get_cmds/details");
 const modifyL1 = require("../modify-l1_cmds/network-key");
 const modifyL2 = require("../modify-l2_cmds/network-key");
+const axios = require("axios");
 const { validate } = require("../../utils");
 
 async function breachPoint(point, auth, returnObject = false) {
@@ -12,11 +13,8 @@ async function breachPoint(point, auth, returnObject = false) {
   const patp = require("urbit-ob").patp(validatedPoint);
 
   try {
-    // Fetch the master ticket
     console.log(`Fetching master ticket for ${patp}...`);
     const ticket = await fetchMasterTicket(patp, auth);
-
-    // Fetch point details
     console.log(`Fetching details for ${patp}...`);
     const pointInfo = await details.getPointInfo(patp, { returnDetails: true });
 
@@ -31,8 +29,6 @@ async function breachPoint(point, auth, returnObject = false) {
     if (!networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
     }
-
-    // Modify network key based on dominion
     console.log(
       `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
     );
@@ -64,7 +60,6 @@ async function breachPoint(point, auth, returnObject = false) {
   }
 }
 
-// Fetch master ticket (helper function)
 async function fetchMasterTicket(patp, auth) {
   const ticketBaseUrl = process.env.TICKET_BASE_URL;
   const url = `${ticketBaseUrl}/${patp}/master-ticket`;
@@ -76,7 +71,6 @@ async function fetchMasterTicket(patp, auth) {
   return response.data.ticket;
 }
 
-// Generate network key for breach (helper function)
 async function generateNetworkKeyForBreach(patp, ticket) {
   return await generateNetworkKey.handler({
     points: [patp],
@@ -87,7 +81,7 @@ async function generateNetworkKeyForBreach(patp, ticket) {
   });
 }
 
-// CLI handler
+// cli handler
 exports.command = "point";
 exports.desc = "Handle the network key breach for the specified point.";
 
@@ -119,5 +113,5 @@ exports.handler = async function (argv) {
   }
 };
 
-// Export for server mode usage
+// export for server mode usage
 module.exports = { breachPoint };
