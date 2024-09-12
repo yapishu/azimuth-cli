@@ -65,10 +65,10 @@ exports.handler = async function (argv) {
     argv.breach = true;
     argv.returnObject = true;
     if (dominion === "l2") {
-      argv.rollerUrbit = true;
+      argv.rollerProvider = "urbit";
       modifyResult = await modifyL2.handler(argv);
     } else if (dominion === "l1") {
-      modifyResult = await modifyL2.handler(argv);
+      modifyResult = await modifyL1.handler(argv);
     } else {
       console.error(`Unsupported dominion type: ${dominion}. Aborting.`);
       return;
