@@ -1,8 +1,6 @@
-// cmds/breach_cmds/point.js
 const details = require("../get_cmds/details");
 const modifyL1 = require("../modify-l1_cmds/network-key");
 const modifyL2 = require("../modify-l2_cmds/network-key");
-const axios = require("axios");
 const { validate } = require("../../utils");
 
 async function breachPoint(point, auth, returnObject = false) {
@@ -81,7 +79,6 @@ async function generateNetworkKeyForBreach(patp, ticket) {
   });
 }
 
-// cli handler
 exports.command = "point";
 exports.desc = "Handle the network key breach for the specified point.";
 

@@ -1,9 +1,9 @@
-// cli.js
 const express = require("express");
 const { breachPoint } = require("./cmds/breach_cmds/point");
 const { files } = require("./utils");
+const yargs = require("yargs");
 
-const argv = require("yargs")
+const argv = yargs
   .options(getUniversalOptions())
   .help()
   .option("server", {
@@ -18,7 +18,7 @@ const argv = require("yargs")
 if (argv.server) {
   startServer();
 } else {
-  require("yargs")
+  yargs
     .scriptName("azimuth-cli")
     .commandDir("cmds")
     .demandCommand()
@@ -34,7 +34,18 @@ function startServer() {
   app.post("/api/breach", async (req, res) => {
     const { point, auth } = req.body;
     try {
-      const result = await breachPoint(point, auth, true); // return result in server mode
+      const defaultArgs = yargs.options(getUniversalOptions()).argv;
+      const mergedArgs = {
+        ...defaultArgs,
+        point,
+        auth,
+      };
+
+      const result = await breachPoint(
+        mergedArgs.point,
+        mergedArgs.auth,
+        mergedArgs.returnObject,
+      );
       res.json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
