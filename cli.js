@@ -10,7 +10,10 @@ const argv = require("yargs")
     describe: "Start in server mode to handle actions via REST",
     type: "boolean",
     default: false,
-  }).argv;
+  })
+  .config("config-file", (configFile) =>
+    files.readJsonObject("", configFile),
+  ).argv;
 
 if (argv.server) {
   startServer();
