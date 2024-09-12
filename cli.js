@@ -1,10 +1,9 @@
-#!/usr/bin/env node
-
+// cli.js
 const express = require("express");
+const { breachPoint } = require("./cmds/breach_cmds/point");
 const { files } = require("./utils");
-const yargs = require("yargs");
 
-const argv = yargs
+const argv = require("yargs")
   .options(getUniversalOptions())
   .help()
   .option("server", {
@@ -19,13 +18,33 @@ const argv = yargs
 if (argv.server) {
   startServer();
 } else {
-  yargs
+  require("yargs")
     .scriptName("azimuth-cli")
     .commandDir("cmds")
     .demandCommand()
     .options(getUniversalOptions())
     .config("config-file", (configFile) => files.readJsonObject("", configFile))
     .help().argv;
+}
+
+function startServer() {
+  const app = express();
+  app.use(express.json());
+
+  app.post("/api/breach", async (req, res) => {
+    const { point, auth } = req.body;
+    try {
+      const result = await breachPoint(point, auth, true); // return result in server mode
+      res.json({ success: true, result });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 }
 
 function getUniversalOptions() {
@@ -56,64 +75,3 @@ function getUniversalOptions() {
     },
   };
 }
-
-function startServer() {
-  const app = express();
-  app.use(express.json());
-
-  // parse command and subcommand from path
-  app.post("/api/:command/:subcommand", async (req, res) => {
-    try {
-      const { command, subcommand } = req.params;
-      const args = req.body || {}; // parse args from the request body
-
-      const fullCommand = `${command} ${subcommand}`;
-      console.log(`Received command: ${fullCommand} with args:`, args);
-
-      // Simulate positional arguments for yargs
-      const commandArgs = [
-        command,
-        subcommand,
-        ...Object.entries(args).flat().map(String), // make sure arguments are strings
-      ];
-
-      // Execute the command
-      const result = await handleCommand(commandArgs);
-      res.json({ success: true, result });
-    } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
-}
-
-async function handleCommand(commandArgs) {
-  return new Promise((resolve, reject) => {
-    yargs
-      .commandDir("cmds")
-      .demandCommand()
-      .parse(commandArgs, {}, (err, argv, output) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(
-            output || `Executed command with args ${JSON.stringify(argv)}`,
-          );
-        }
-      });
-  });
-}
-
-process.on("SIGTERM", () => {
-  console.log("Received SIGTERM, shutting down...");
-  process.exit(0);
-});
-
-process.on("SIGINT", () => {
-  console.log("Received SIGINT, shutting down...");
-  process.exit(0);
-});

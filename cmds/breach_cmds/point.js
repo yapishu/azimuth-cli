@@ -1,11 +1,96 @@
-const axios = require("axios");
+// cmds/breach_cmds/point.js
 const details = require("../get_cmds/details");
 const modifyL1 = require("../modify-l1_cmds/network-key");
 const modifyL2 = require("../modify-l2_cmds/network-key");
 const { validate } = require("../../utils");
 
+async function breachPoint(point, auth, returnObject = false) {
+  const validatedPoint = validate.point(point, true);
+  if (!validatedPoint) {
+    throw new Error("Invalid point");
+  }
+  const patp = require("urbit-ob").patp(validatedPoint);
+
+  try {
+    // Fetch the master ticket
+    console.log(`Fetching master ticket for ${patp}...`);
+    const ticket = await fetchMasterTicket(patp, auth);
+
+    // Fetch point details
+    console.log(`Fetching details for ${patp}...`);
+    const pointInfo = await details.getPointInfo(patp, { returnDetails: true });
+
+    if (!pointInfo) {
+      throw new Error(`Failed to fetch details for ${patp}. Aborting.`);
+    }
+
+    const { dominion } = pointInfo.dominion;
+    console.log(`Generating network key with breach for ${patp}...`);
+    const networkKeyData = await generateNetworkKeyForBreach(patp, ticket);
+
+    if (!networkKeyData) {
+      throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
+    }
+
+    // Modify network key based on dominion
+    console.log(
+      `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
+    );
+    let modifyResult;
+    const argv = {
+      points: [patp],
+      privateKeyTicket: `~${ticket}`,
+      breach: true,
+      returnObject,
+      workDir: ".",
+    };
+
+    if (dominion === "l2") {
+      modifyResult = await modifyL2.handler(argv);
+    } else if (dominion === "l1") {
+      modifyResult = await modifyL1.handler(argv);
+    } else {
+      throw new Error(`Unsupported dominion type: ${dominion}. Aborting.`);
+    }
+
+    if (returnObject) {
+      return modifyResult;
+    }
+
+    console.log(`Successfully breached ${patp}!`);
+  } catch (error) {
+    console.error(`Error processing breach for ${patp}:`, error);
+    throw error;
+  }
+}
+
+// Fetch master ticket (helper function)
+async function fetchMasterTicket(patp, auth) {
+  const ticketBaseUrl = process.env.TICKET_BASE_URL;
+  const url = `${ticketBaseUrl}/${patp}/master-ticket`;
+  const response = await axios.get(url, {
+    headers: {
+      "Admin-Token": auth,
+    },
+  });
+  return response.data.ticket;
+}
+
+// Generate network key for breach (helper function)
+async function generateNetworkKeyForBreach(patp, ticket) {
+  return await generateNetworkKey.handler({
+    points: [patp],
+    privateKeyTicket: `~${ticket}`,
+    breach: true,
+    returnObject: true,
+    workDir: ".",
+  });
+}
+
+// CLI handler
 exports.command = "point";
 exports.desc = "Handle the network key breach for the specified point.";
+
 exports.builder = (yargs) => {
   yargs.positional("point", {
     describe: "The point to breach",
@@ -24,84 +109,15 @@ exports.builder = (yargs) => {
 };
 
 exports.handler = async function (argv) {
-  const point = validate.point(argv.point, true);
-  if (point === null) {
-    console.error("Invalid point. Aborting.");
-    return;
-  }
-  const patp = require("urbit-ob").patp(point);
-
   try {
-    // fetch the master ticket
-    console.log(`Fetching master ticket for ${patp}...`);
-    const ticket = await fetchMasterTicket(patp, argv.auth);
-
-    // get point details
-    console.log(`Fetching details for ${patp}...`);
-    const pointInfo = await details.getPointInfo(patp, {
-      returnDetails: true,
-    });
-
-    if (!pointInfo) {
-      console.log(`Failed to fetch details for ${patp}. Aborting.`);
-      return;
-    }
-    const { dominion } = pointInfo.dominion;
-    console.log(`Generating network key with breach for ${patp}...`);
-    const networkKeyData = await generateNetworkKeyForBreach(patp, ticket);
-
-    if (!networkKeyData) {
-      console.log(`Failed to generate network keys for ${patp}. Aborting.`);
-      return;
-    }
-
-    console.log(`Generated network key:`, networkKeyData.networkKeyPair);
-    console.log(
-      `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
-    );
-
-    let modifyResult;
-    argv.privateKetTicket = ticket;
-    argv.breach = true;
-    argv.returnObject = true;
-    if (dominion === "l2") {
-      modifyResult = await modifyL2.handler(argv);
-    } else if (dominion === "l1") {
-      modifyResult = await modifyL1.handler(argv);
-    } else {
-      console.error(`Unsupported dominion type: ${dominion}. Aborting.`);
-      return;
-    }
-
+    const result = await breachPoint(argv.point, argv.auth, argv.returnObject);
     if (argv.returnObject) {
-      console.log("result:", modifyResult);
-      return modifyResult;
-    } else {
-      console.log(`Successfully breached ${patp}!`);
+      console.log("Result:", result);
     }
   } catch (error) {
-    console.error(`Error processing breach for ${patp}:`, error);
+    console.error(`Error: ${error.message}`);
   }
 };
 
-async function fetchMasterTicket(patp, auth) {
-  const ticketBaseUrl = process.env.TICKET_BASE_URL;
-  const url = `${ticketBaseUrl}/${patp}/master-ticket`;
-  const response = await axios.get(url, {
-    headers: {
-      "Admin-Token": auth,
-    },
-  });
-  return response.data.ticket;
-}
-
-// server mode
-async function generateNetworkKeyForBreach(patp, ticket) {
-  return await generateNetworkKey.handler({
-    points: [patp],
-    privateKeyTicket: `~${ticket}`,
-    breach: true,
-    returnObject: true,
-    workDir: ".",
-  });
-}
+// Export for server mode usage
+module.exports = { breachPoint };
