@@ -12,10 +12,9 @@ const argv = yargs
     type: "boolean",
     default: false,
   })
-  .config("config-file", (configFile) => {
-    const config = files.readJsonObject("", configFile);
-    return config;
-  }).argv;
+  .config("config-file", (configFile) =>
+    files.readJsonObject("", configFile),
+  ).argv;
 
 if (argv.server) {
   startServer();
@@ -62,19 +61,20 @@ function startServer() {
   const app = express();
   app.use(express.json());
 
-  // parse command from path
+  // parse command and subcommand from path
   app.post("/api/:command/:subcommand", async (req, res) => {
     try {
       const { command, subcommand } = req.params;
-      const args = req.body || {}; // args from the request body
+      const args = req.body || {}; // parse args from the request body
 
       const fullCommand = `${command} ${subcommand}`;
       console.log(`Received command: ${fullCommand} with args:`, args);
 
-      // merge global defaults with client-provided args
+      // Merge server argv (global defaults) with client-provided args
       const mergedArgs = { ...argv, ...args };
 
-      const result = await handleCommand(fullCommand, mergedArgs);
+      // Execute the command
+      const result = await handleCommand(command, subcommand, mergedArgs);
       res.json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -87,14 +87,19 @@ function startServer() {
   });
 }
 
-async function handleCommand(command, args) {
+async function handleCommand(command, subcommand, args) {
   try {
+    const fullCommandWithArg = `${command} ${subcommand}`;
+
     const result = await yargs
       .commandDir("cmds")
       .demandCommand()
-      .parseAsync(`${command} ${args.point}`, args);
+      .parseAsync([command, subcommand, ...Object.entries(args).flat()], args);
 
-    return result || `Executed ${command} with args ${JSON.stringify(args)}`;
+    return (
+      result ||
+      `Executed ${fullCommandWithArg} with args ${JSON.stringify(args)}`
+    );
   } catch (error) {
     throw error;
   }
