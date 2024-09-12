@@ -55,10 +55,13 @@ async function breachPoint(argv) {
       throw new Error(`Unsupported dominion type: ${dominion}. Aborting.`);
     }
 
-    modifyResult.keyfile = argv.networkKeyData.keyfile;
-    modifyResult.life = pointInfo.continuityNumber;
-    modifyResult.rift = pointInfo.networkKeysRevision;
-    modifyResult.dominion = pointInfo.dominion;
+    modifyResult = {
+      ...modifyResult,
+      keyfile: argv.networkKeyData.keyfile,
+      life: pointInfo.continuityNumber,
+      rift: pointInfo.networkKeysRevision,
+      dominion: pointInfo.dominion,
+    };
     if (argv.returnObject) {
       return modifyResult;
     }
