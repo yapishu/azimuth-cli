@@ -65,7 +65,6 @@ exports.handler = async function (argv) {
     argv.breach = true;
     argv.returnObject = true;
     if (dominion === "l2") {
-      argv.rollerProvider = "urbit";
       modifyResult = await modifyL2.handler(argv);
     } else if (dominion === "l1") {
       modifyResult = await modifyL1.handler(argv);

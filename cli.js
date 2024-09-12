@@ -11,9 +11,7 @@ const argv = require("yargs")
     type: "boolean",
     default: false,
   })
-  .config("config-file", (configFile) =>
-    files.readJsonObject("", configFile),
-  ).argv;
+  .config("config-file", (configFile) => files.readJsonObject("", configFile));
 
 if (argv.server) {
   startServer();
