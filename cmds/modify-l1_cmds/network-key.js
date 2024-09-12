@@ -49,7 +49,7 @@ exports.handler = async function (argv) {
     if (wallet) {
       networkKeyPair = wallet.network.keys;
     } else if (argv.networkKeyData) {
-      networkKeyPair = argv.networkData;
+      networkKeyPair = argv.networkData.networkKeyPair;
     } else if (files.fileExists(workDir, keysFileName)) {
       networkKeyPair = files.readJsonObject(workDir, keysFileName);
     } else {
