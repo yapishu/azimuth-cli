@@ -1,22 +1,26 @@
-const ob = require('urbit-ob')
-const _ = require('lodash')
-const ajsUtils = require('azimuth-js').utils;
-var Accounts = require('web3-eth-accounts');
-const {files, validate, eth, findPoints, rollerApi} = require('../../utils')
+const ob = require("urbit-ob");
+const _ = require("lodash");
+const ajsUtils = require("azimuth-js").utils;
+const Accounts = require("web3-eth-accounts");
+const { files, validate, eth, findPoints, rollerApi } = require("../../utils");
 
-exports.command = 'network-key'
-exports.desc = 'Set the network key for one or more L2 points.'
+exports.command = "network-key";
+exports.desc = "Set the network key for one or more L2 points.";
 
-exports.builder = function(yargs) {
-  yargs.option('breach',{
-    describe: 'Do a factory reset of the ship.',
+exports.builder = function (yargs) {
+  yargs.option("breach", {
+    describe: "Do a factory reset of the ship.",
     default: false,
-    type: 'boolean',
+    type: "boolean",
   });
-}
+  yargs.option("return-object", {
+    describe: "Return the result object instead of writing to disk.",
+    default: false,
+    type: "boolean",
+  });
+};
 
-exports.handler = async function (argv)
-{
+exports.handler = async function (argv) {
   const rollerClient = rollerApi.createClient(argv);
   const workDir = files.ensureWorkDir(argv.workDir);
 
@@ -24,46 +28,42 @@ exports.handler = async function (argv)
   const points = findPoints.getPoints(argv, workDir, wallets);
 
   console.log(`Will set network keys for ${points.length} points`);
-  for (const p of points) 
-  {
+  const results = [];
+
+  for (const p of points) {
     let patp = ob.patp(p);
     console.log(`Trying to set network key for ${patp} (${p}).`);
 
     const pointInfo = await rollerApi.getPoint(rollerClient, patp);
-    if(pointInfo.dominion != 'l2'){
-      console.log(`This point in not on L2, please use the L1 modify command.`);
+    if (pointInfo.dominion !== "l2") {
+      console.log(`This point is not on L2, please use the L1 modify command.`);
       continue;
     }
-    
-    const currentKeys = pointInfo.network.keys;
 
-    //retrieve the network keypair
+    const currentKeys = pointInfo.network.keys;
     let wallet = argv.useWalletFiles ? wallets[patp] : null;
     const currentRevision = currentKeys.life; //network key revision number == life.
-    argv.point = patp;
-    let revision = currentRevision;
-    const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
+    const keysFileName = `${patp.substring(1)}-networkkeys-${currentRevision}.json`;
+
     let networkKeyPair = null;
-    if(wallet){
+    if (wallet) {
       networkKeyPair = wallet.network.keys;
-    }
-    else if(files.fileExists(workDir, keysFileName)){
+    } else if (files.fileExists(workDir, keysFileName)) {
       console.log(`Reading network keys from ${keysFileName}`);
       networkKeyPair = files.readJsonObject(workDir, keysFileName);
-    }
-    else{
-      console.error(`Could not find network keys for ${patp} (${keysFileName}): provide them either via wallet or network key file.`);
+    } else {
+      console.error(`Could not find network keys for ${patp}.`);
       process.exit(1);
     }
-    argv.revision = revision;
+
     const privateKey = await eth.getPrivateKey(argv);
-    console.log(`Generated private key for ${patp}: ${argv.privateKeyTicket}, ${revision}`);
     const account = new Accounts().privateKeyToAccount(privateKey);
     const signingAddress = account.address;
-    console.log(`Signing address: ${signingAddress}`);
 
-    if(!(await rollerApi.canConfigureKeys(rollerClient, patp, signingAddress))){
-      console.log(`Cannot set network keys for ${patp}, must be owner or management proxy.`);
+    if (
+      !(await rollerApi.canConfigureKeys(rollerClient, patp, signingAddress))
+    ) {
+      console.log(`Cannot set network keys for ${patp}.`);
       continue;
     }
 
@@ -71,29 +71,26 @@ exports.handler = async function (argv)
     var publicCrypt = ajsUtils.addHexPrefix(networkKeyPair.crypt.public);
     var publicAuth = ajsUtils.addHexPrefix(networkKeyPair.auth.public);
 
-    if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && !argv.breach)
-    {
-        console.log(`The network key is already set for ${patp}`);
-        // console.log(JSON.stringify(networkKeyPair, null, 2));
-        // console.log(JSON.stringify(currentKeys, null, 2));
-        continue;
-    }
-    else if(currentKeys.crypt == publicCrypt && currentKeys.auth == publicAuth && argv.breach){
-        console.log(`Breaching with existing key revision ${patp}.`);
-    }
-    var receipt = await rollerApi.configureKeys(rollerClient, patp, publicCrypt, publicAuth, argv.breach, signingAddress, privateKey);
-    console.log("Tx hash: "+receipt.hash);
+    const receipt = await rollerApi.configureKeys(
+      rollerClient,
+      patp,
+      publicCrypt,
+      publicAuth,
+      argv.breach,
+      signingAddress,
+      privateKey,
+    );
 
-    let receiptFileName = patp.substring(1)+`-receipt-L2-${receipt.type}.json`;
-    files.writeFile(workDir, receiptFileName, receipt);
-  } //end for each point
-  
+    if (argv.returnObject) {
+      results.push({ patp, receipt });
+    } else {
+      files.writeFile(workDir, `${patp}-receipt-L2.json`, receipt);
+    }
+  }
+
+  if (argv.returnObject) {
+    return results;
+  }
+
   process.exit(0);
 };
-
-
-
-
-
-
-
