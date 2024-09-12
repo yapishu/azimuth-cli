@@ -68,7 +68,7 @@ exports.handler = async function (argv) {
         breach: true,
         returnObject: true,
         workDir: ".",
-        rollerProvider: "urbit",
+        configFile: argv.configFile,
       });
     } else if (dominion === "l1") {
       modifyResult = await modifyL2.handler({
@@ -77,6 +77,7 @@ exports.handler = async function (argv) {
         breach: true,
         returnObject: true,
         workDir: ".",
+        configFile: argv.configFile,
       });
     } else {
       console.error(`Unsupported dominion type: ${dominion}. Aborting.`);
