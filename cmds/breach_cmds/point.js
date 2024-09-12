@@ -14,12 +14,12 @@ async function breachPoint(argv) {
 
   try {
     argv.points = [patp];
-    argv.privateKeyTicket = `~${ticket}`;
     argv.breach = true;
     argv.returnObject = true;
     argv.workDir = ".";
     console.log(`Fetching master ticket for ${patp}...`);
     const ticket = await fetchMasterTicket(patp, argv.auth);
+    argv.privateKeyTicket = `~${ticket}`;
 
     console.log(`Fetching details for ${patp}...`);
     const pointInfo = await details.getPointInfo(patp, {
