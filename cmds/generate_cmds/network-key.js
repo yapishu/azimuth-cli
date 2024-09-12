@@ -134,7 +134,7 @@ exports.handler = async function (argv) {
         console.log(`${networkKeyfileName} already exists, will not recreate.`);
       }
     } else {
-      return { point: p, networkKeyPair };
+      return { point: p, networkKeyPair, keyfile: networkKeyfileContents };
     }
   }
 };

@@ -36,6 +36,7 @@ async function breachPoint(argv) {
 
     console.log(`Generating network key with breach for ${patp}...`);
     argv.networkKeyData = await generate.handler(argv);
+    console.log("Key Info:", JSON.stringify(argv.networkKeyData, null, 2));
 
     if (!argv.networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
@@ -54,6 +55,10 @@ async function breachPoint(argv) {
       throw new Error(`Unsupported dominion type: ${dominion}. Aborting.`);
     }
 
+    modifyResult.keyfile = argv.networkKeyData.keyfile;
+    modifyResult.life = pointInfo.continuityNumber;
+    modifyResult.rift = pointInfo.networkKeysRevision;
+    modifyResult.dominion = pointInfo.dominion;
     if (argv.returnObject) {
       return modifyResult;
     }
