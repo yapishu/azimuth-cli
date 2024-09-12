@@ -49,7 +49,7 @@ exports.handler = async function (argv) {
     if (wallet) {
       networkKeyPair = wallet.network.keys;
     } else if (argv.networkKeyData) {
-      networkKeyPair = argv.networkData.network.keys;
+      networkKeyPair = argv.networkData;
     } else if (files.fileExists(workDir, keysFileName)) {
       console.log(`Reading network keys from ${keysFileName}`);
       networkKeyPair = files.readJsonObject(workDir, keysFileName);
