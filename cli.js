@@ -70,8 +70,14 @@ function startServer() {
       const fullCommand = `${command} ${subcommand}`;
       console.log(`Received command: ${fullCommand} with args:`, args);
 
-      // simulate positional arguments for yargs
-      const commandArgs = [command, subcommand, ...Object.entries(args).flat()];
+      // Simulate positional arguments for yargs
+      const commandArgs = [
+        command,
+        subcommand,
+        ...Object.entries(args).flat().map(String), // make sure arguments are strings
+      ];
+
+      // Execute the command
       const result = await handleCommand(commandArgs);
       res.json({ success: true, result });
     } catch (error) {
