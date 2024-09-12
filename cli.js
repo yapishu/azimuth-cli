@@ -70,11 +70,9 @@ function startServer() {
       const fullCommand = `${command} ${subcommand}`;
       console.log(`Received command: ${fullCommand} with args:`, args);
 
-      // Merge server argv (global defaults) with client-provided args
-      const mergedArgs = { ...argv, ...args };
-
-      // Execute the command
-      const result = await handleCommand(command, subcommand, mergedArgs);
+      // simulate positional arguments for yargs
+      const commandArgs = [command, subcommand, ...Object.entries(args).flat()];
+      const result = await handleCommand(commandArgs);
       res.json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
@@ -87,22 +85,21 @@ function startServer() {
   });
 }
 
-async function handleCommand(command, subcommand, args) {
-  try {
-    const fullCommandWithArg = `${command} ${subcommand}`;
-
-    const result = await yargs
+async function handleCommand(commandArgs) {
+  return new Promise((resolve, reject) => {
+    yargs
       .commandDir("cmds")
       .demandCommand()
-      .parseAsync([command, subcommand, ...Object.entries(args).flat()], args);
-
-    return (
-      result ||
-      `Executed ${fullCommandWithArg} with args ${JSON.stringify(args)}`
-    );
-  } catch (error) {
-    throw error;
-  }
+      .parse(commandArgs, {}, (err, argv, output) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(
+            output || `Executed command with args ${JSON.stringify(argv)}`,
+          );
+        }
+      });
+  });
 }
 
 process.on("SIGTERM", () => {
