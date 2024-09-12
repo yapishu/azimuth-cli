@@ -134,6 +134,11 @@ exports.handler = async function (argv) {
         console.log(`${networkKeyfileName} already exists, will not recreate.`);
       }
     } else {
+      networkKeyfileContents = kg.generateKeyfile(
+        networkKeyPair,
+        p,
+        Number(revision),
+      );
       return { point: p, networkKeyPair, keyfile: networkKeyfileContents };
     }
   }
