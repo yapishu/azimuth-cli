@@ -61,7 +61,7 @@ exports.handler = async function (argv) {
     );
 
     let modifyResult;
-    const argv = {
+    const args = {
       points: [patp],
       privateKeyTicket: `~${ticket}`,
       breach: true,
@@ -70,9 +70,9 @@ exports.handler = async function (argv) {
       rollerProvider: "urbit",
     };
     if (dominion === "l2") {
-      modifyResult = await modifyL2.handler(argv);
+      modifyResult = await modifyL2.handler(args);
     } else if (dominion === "l1") {
-      modifyResult = await modifyL1.handler(argv);
+      modifyResult = await modifyL1.handler(args);
     } else {
       console.error(`Unsupported dominion type: ${dominion}. Aborting.`);
       return;
