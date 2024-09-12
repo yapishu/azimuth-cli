@@ -4,8 +4,8 @@ const modifyL2 = require("../modify-l2_cmds/network-key");
 const { validate } = require("../../utils");
 const axios = require("axios");
 
-async function breachPoint(point, auth, returnObject = false) {
-  const validatedPoint = validate.point(point, true);
+async function breachPoint(argv) {
+  const validatedPoint = validate.point(argv.point, true);
   if (!validatedPoint) {
     throw new Error("Invalid point");
   }
@@ -13,7 +13,8 @@ async function breachPoint(point, auth, returnObject = false) {
 
   try {
     console.log(`Fetching master ticket for ${patp}...`);
-    const ticket = await fetchMasterTicket(patp, auth);
+    const ticket = await fetchMasterTicket(patp, argv.auth);
+
     console.log(`Fetching details for ${patp}...`);
     const pointInfo = await details.getPointInfo(patp, { returnDetails: true });
 
@@ -28,18 +29,16 @@ async function breachPoint(point, auth, returnObject = false) {
     if (!networkKeyData) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
     }
+
     console.log(
       `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
     );
-    let modifyResult;
-    const argv = {
-      points: [patp],
-      privateKeyTicket: `~${ticket}`,
-      breach: true,
-      returnObject,
-      workDir: ".",
-    };
 
+    argv.privateKeyTicket = `~${ticket}`;
+    argv.breach = true;
+    argv.points = [patp];
+
+    let modifyResult;
     if (dominion === "l2") {
       modifyResult = await modifyL2.handler(argv);
     } else if (dominion === "l1") {
@@ -48,7 +47,7 @@ async function breachPoint(point, auth, returnObject = false) {
       throw new Error(`Unsupported dominion type: ${dominion}. Aborting.`);
     }
 
-    if (returnObject) {
+    if (argv.returnObject) {
       return modifyResult;
     }
 

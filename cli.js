@@ -31,21 +31,18 @@ function startServer() {
   const app = express();
   app.use(express.json());
 
+  const config = files.readJsonObject("", argv["config-file"]);
+
   app.post("/api/breach", async (req, res) => {
-    const { point, auth } = req.body;
     try {
       const defaultArgs = yargs.options(getUniversalOptions()).argv;
       const mergedArgs = {
         ...defaultArgs,
-        point,
-        auth,
+        ...config,
+        ...req.body,
       };
+      const result = await breachPoint(mergedArgs);
 
-      const result = await breachPoint(
-        mergedArgs.point,
-        mergedArgs.auth,
-        mergedArgs.returnObject,
-      );
       res.json({ success: true, result });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
