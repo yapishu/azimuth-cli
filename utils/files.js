@@ -1,27 +1,55 @@
 const fs = require("fs");
 const path = require("path");
-const os = require('os');
-const chalk = require('chalk');
+const os = require("os");
+const chalk = require("chalk");
 
-function exitBecauseInvalid(paramName, msg){
-  let errorMessage = `'${paramName}' is not valid.`
-  if(msg)
-    errorMessage += " "+msg;
+function getUniversalOptions() {
+  return {
+    d: {
+      alias: "work-dir",
+      describe:
+        "The work directory for the current command, mandatory for some commands. If it does not exist, it will be created.",
+      default: ".",
+      type: "string",
+    },
+    "eth-provider": {
+      describe: "What Ethereum provider to use.",
+      default: "mainnet",
+      choices: ["ganache", "ropsten", "mainnet"],
+      type: "string",
+    },
+    "roller-provider": {
+      describe: "What L2 roller provider to use.",
+      default: "urbit",
+      choices: ["local", "urbit"],
+      type: "string",
+    },
+    "config-file": {
+      describe: "What config file to use.",
+      default: ensureDefaultConfigFilePath(),
+      type: "string",
+    },
+  };
+}
+
+function exitBecauseInvalid(paramName, msg) {
+  let errorMessage = `'${paramName}' is not valid.`;
+  if (msg) errorMessage += " " + msg;
   console.error(chalk.red(errorMessage));
   process.exit(1);
 }
 
-function ensureDefaultConfigFilePath(){
-  const azimuthDir = '.azimuth';
-  const cliConfigFile = 'cli-config.json';
+function ensureDefaultConfigFilePath() {
+  const azimuthDir = ".azimuth";
+  const cliConfigFile = "cli-config.json";
   const azimuthDirPath = path.resolve(os.homedir(), azimuthDir);
-  if(!fs.existsSync(azimuthDirPath)){
+  if (!fs.existsSync(azimuthDirPath)) {
     fs.mkdirSync(azimuthDirPath);
   }
   const cliConfigFilePath = path.resolve(azimuthDirPath, cliConfigFile);
-  if(!fs.existsSync(cliConfigFilePath)){
-    let defaultCliConfig = require('../cli-config.json');
-    writeFile('',cliConfigFilePath, defaultCliConfig);
+  if (!fs.existsSync(cliConfigFilePath)) {
+    let defaultCliConfig = require("../cli-config.json");
+    writeFile("", cliConfigFilePath, defaultCliConfig);
   }
   return cliConfigFilePath;
 }
@@ -31,13 +59,13 @@ function ensureDefaultConfigFilePath(){
  * @param  {string} filePath '~/GitHub/Repo/file.png'
  * @return {string}          '/home/bob/GitHub/Repo/file.png'
  */
- function resolveTilde (filePath) {
-  if (!filePath || typeof(filePath) !== 'string') {
-    return '';
+function resolveTilde(filePath) {
+  if (!filePath || typeof filePath !== "string") {
+    return "";
   }
 
   // '~/folder/path' or '~' not '~alias/folder/path'
-  if (filePath.startsWith('~/') || filePath === '~') {
+  if (filePath.startsWith("~/") || filePath === "~") {
     return path.resolve(os.homedir(), filePath.substr(1));
   }
 
@@ -47,18 +75,18 @@ function ensureDefaultConfigFilePath(){
 /**
  * Finds all files recursively in the directory
  * @param {String} dir - The directory.
- * @returns {Array<string>} Returns an array of all files . 
+ * @returns {Array<string>} Returns an array of all files .
  */
-function getFiles (dir, files_){
+function getFiles(dir, files_) {
   files_ = files_ || [];
   let files = fs.readdirSync(dir);
-  for (var i in files){
-      var name = dir + '/' + files[i];
-      if (fs.statSync(name).isDirectory()){
-          getFiles(name, files_);
-      } else {
-          files_.push(name);
-      }
+  for (var i in files) {
+    var name = dir + "/" + files[i];
+    if (fs.statSync(name).isDirectory()) {
+      getFiles(name, files_);
+    } else {
+      files_.push(name);
+    }
   }
   return files_;
 }
@@ -66,27 +94,25 @@ function getFiles (dir, files_){
 /**
  * Ensures that the work directory is valid and exists
  * @param {String} workDir - The work directory.
- * @returns {String} The full work directory path. 
+ * @returns {String} The full work directory path.
  */
- function ensureWorkDir(workDir)
- {
-   if(!workDir)
-     exitBecauseInvalid('work-dir', "The work directory needs to be provided.")
-     const fullPath = path.resolve(workDir);
-   if(!fs.existsSync(fullPath)){
-     fs.mkdirSync(fullPath);
-   }
-   return fullPath;
- }
- 
+function ensureWorkDir(workDir) {
+  if (!workDir)
+    exitBecauseInvalid("work-dir", "The work directory needs to be provided.");
+  const fullPath = path.resolve(workDir);
+  if (!fs.existsSync(fullPath)) {
+    fs.mkdirSync(fullPath);
+  }
+  return fullPath;
+}
+
 /**
  * Check if a file exists
  * @param {String} workDir - The work directory.
  * @param {String} fileName - The name of the file.
- * @returns {Boolean} Whether the file exists or not. 
+ * @returns {Boolean} Whether the file exists or not.
  */
-function fileExists(workDir, fileName)
-{
+function fileExists(workDir, fileName) {
   const filePath = path.resolve(workDir, fileName);
   return fs.existsSync(filePath);
 }
@@ -97,14 +123,12 @@ function fileExists(workDir, fileName)
  * @param {String} fileName - The name of the file.
  * @returns {String} The resolved file path if it exists. Exits the program otherwise.
  */
-function ensureFileExists(workDir, fileName)
-{
+function ensureFileExists(workDir, fileName) {
   const filePath = path.resolve(workDir, fileName);
-  if(fs.existsSync(filePath))
-  {
+  if (fs.existsSync(filePath)) {
     return filePath;
   }
-  exitBecauseInvalid('file-name', `The file ${filePath} does not exist.`);
+  exitBecauseInvalid("file-name", `The file ${filePath} does not exist.`);
 }
 
 /**
@@ -114,20 +138,18 @@ function ensureFileExists(workDir, fileName)
  * @param {(String|Array|Object)} contents - The contents to write. Strings are written directly, objects as JSON, arrays with each item on a new line.
  * @returns {String} The resolved file path. Will exit print error and exit if file cannot be written.
  */
-function writeFile(workDir, fileName, contents)
-{
+function writeFile(workDir, fileName, contents) {
   const filePath = path.resolve(workDir, fileName);
 
   let toWrite = contents;
-  if(Array.isArray(contents)){
+  if (Array.isArray(contents)) {
     toWrite = contents.join(os.EOL);
-  }
-  else if(typeof contents === 'object'){
-    toWrite = JSON.stringify(contents, null, 2)
+  } else if (typeof contents === "object") {
+    toWrite = JSON.stringify(contents, null, 2);
   }
 
   try {
-    fs.writeFileSync(filePath, toWrite)
+    fs.writeFileSync(filePath, toWrite);
   } catch (err) {
     console.error(chalk.red(err));
     process.exit(1);
@@ -141,15 +163,13 @@ function writeFile(workDir, fileName, contents)
  * @param {String} fileName - The name of the file.
  * @returns {Array} An array containing the lines.
  */
-function readLines(workDir, fileName)
-{
+function readLines(workDir, fileName) {
   const filePath = resolveTilde(path.resolve(workDir, fileName));
   try {
     const contents = fs.readFileSync(filePath).toString();
     const array = contents.split(os.EOL);
     return array;
-  }
-  catch (err) {
+  } catch (err) {
     console.error(chalk.red(err));
     process.exit(1);
   }
@@ -161,15 +181,13 @@ function readLines(workDir, fileName)
  * @param {String} fileName - The name of the file.
  * @returns {Object} The parsed JSON object.
  */
-function readJsonObject(workDir, fileName)
-{
+function readJsonObject(workDir, fileName) {
   const filePath = resolveTilde(path.resolve(workDir, fileName));
   try {
     const contents = fs.readFileSync(filePath).toString();
     const json = JSON.parse(contents);
     return json;
-  }
-  catch (err) {
+  } catch (err) {
     console.error(chalk.red(err));
     process.exit(1);
   }
@@ -184,6 +202,6 @@ module.exports = {
   ensureFileExists,
   writeFile,
   readLines,
-  readJsonObject
-}
-
+  readJsonObject,
+  getUniversalOptions,
+};

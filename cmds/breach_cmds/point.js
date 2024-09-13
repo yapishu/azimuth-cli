@@ -1,31 +1,37 @@
+// cmds/breach_cmds/point.js
+
 const details = require("../get_cmds/details");
 const modifyL1 = require("../modify-l1_cmds/network-key");
 const modifyL2 = require("../modify-l2_cmds/network-key");
 const generate = require("../generate_cmds/network-key");
 const { validate } = require("../../utils");
 const axios = require("axios");
+const ob = require("urbit-ob");
 
-async function breachPoint(argv) {
-  const validatedPoint = validate.point(argv.point, true);
+async function breachPoint(args) {
+  const { point, auth, returnObject } = args;
+
+  const validatedPoint = validate.point(point, true);
   if (!validatedPoint) {
     throw new Error("Invalid point");
   }
-  const patp = require("urbit-ob").patp(validatedPoint);
+  const patp = ob.patp(validatedPoint);
 
   try {
-    argv.points = [patp];
-    argv.breach = true;
-    argv.returnObject = true;
-    argv.workDir = ".";
+    let fullArgs = {
+      ...args,
+      points: [patp],
+      breach: true,
+      returnObject: true,
+      workDir: args.workDir || ".",
+    };
+
     console.log(`Fetching master ticket for ${patp}...`);
-    const ticket = await fetchMasterTicket(patp, argv.auth);
-    argv.privateKeyTicket = `~${ticket}`;
+    const ticket = await fetchMasterTicket(patp, auth);
+    fullArgs.privateKeyTicket = `~${ticket}`;
 
     console.log(`Fetching details for ${patp}...`);
-    const pointInfo = await details.getPointInfo(patp, {
-      returnDetails: true,
-      ...argv,
-    });
+    const pointInfo = await details.getPointInfo(patp, fullArgs);
 
     if (!pointInfo) {
       throw new Error(`Failed to fetch details for ${patp}. Aborting.`);
@@ -35,12 +41,13 @@ async function breachPoint(argv) {
     const dominion = pointInfo.dominion;
 
     console.log(`Generating network key with breach for ${patp}...`);
-    argv.networkKeyData = await generate.handler(argv);
-    console.log("Key Info:", JSON.stringify(argv.networkKeyData, null, 2));
+    const networkKeyDataArray = await generate.generateNetworkKey(fullArgs);
 
-    if (!argv.networkKeyData) {
+    if (!networkKeyDataArray || networkKeyDataArray.length === 0) {
       throw new Error(`Failed to generate network keys for ${patp}. Aborting.`);
     }
+
+    const networkKeyData = networkKeyDataArray[0];
 
     console.log(
       `Modifying network key with breach for ${patp} on dominion: ${dominion}...`,
@@ -48,22 +55,28 @@ async function breachPoint(argv) {
 
     let modifyResult;
     if (dominion === "l2") {
-      modifyResult = await modifyL2.handler(argv);
+      modifyResult = await modifyL2.modifyL2NetworkKey({
+        ...fullArgs,
+        networkKeyData,
+        points: [networkKeyData.point],
+      });
     } else if (dominion === "l1") {
-      modifyResult = await modifyL1.handler(argv);
+      modifyResult = await modifyL1.modifyL1NetworkKey({
+        ...fullArgs,
+        networkKeyData,
+        points: [networkKeyData.point],
+      });
     } else {
       throw new Error(`Unsupported dominion type: ${dominion}. Aborting.`);
     }
 
-    modifyResult = {
+    const finalResult = {
       ...modifyResult,
-      keyfile: argv.networkKeyData.keyfile,
-      life: pointInfo.continuityNumber,
-      rift: pointInfo.networkKeysRevision,
-      dominion: pointInfo.dominion,
+      keyfile: networkKeyData.keyfile,
+      pointInfo: pointInfo,
     };
-    if (argv.returnObject) {
-      return modifyResult;
+    if (args.returnObject || args["return-object"]) {
+      return finalResult;
     }
 
     console.log(`Successfully breached ${patp}!`);
@@ -84,10 +97,10 @@ async function fetchMasterTicket(patp, auth) {
   return response.data.ticket;
 }
 
-exports.command = "point";
-exports.desc = "Handle the network key breach for the specified point.";
+const command = "point <point>";
+const desc = "Handle the network key breach for the specified point.";
 
-exports.builder = (yargs) => {
+const builder = (yargs) => {
   yargs.positional("point", {
     describe: "The point to breach",
     type: "string",
@@ -104,9 +117,9 @@ exports.builder = (yargs) => {
   });
 };
 
-exports.handler = async function (argv) {
+const handler = async function (argv) {
   try {
-    const result = await breachPoint(argv.point, argv.auth, argv.returnObject);
+    const result = await breachPoint(argv);
     if (argv.returnObject) {
       console.log("Result:", result);
     }
@@ -115,5 +128,10 @@ exports.handler = async function (argv) {
   }
 };
 
-// export for server mode usage
-module.exports = { breachPoint };
+module.exports = {
+  command,
+  desc,
+  builder,
+  handler,
+  breachPoint,
+};

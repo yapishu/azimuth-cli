@@ -1,3 +1,5 @@
+// cmds/generate_cmds/network-key.js
+
 const ob = require("urbit-ob");
 const kg = require("urbit-key-generation");
 const ticket = require("up8-ticket");
@@ -7,10 +9,11 @@ const { files, validate, findPoints } = require("../../utils");
 // needs to be required explicitly for up8-ticket to work
 global.crypto = require("crypto");
 
-exports.command = "network-key";
-exports.desc =
+const command = "network-key";
+const desc =
   "Generates network keys and the associated network key file, used for booting the ship.";
-exports.builder = (yargs) => {
+
+const builder = (yargs) => {
   yargs.demandOption("d");
 
   yargs.option("points-file", {
@@ -28,7 +31,7 @@ exports.builder = (yargs) => {
   });
 
   yargs.option("use-wallet-files", {
-    describe: `Use the wallet JSON files in the current work directory for the points and the network keys, will only generate the network key file. The wallet will have to have been generated with the --generate-network-keys set to true (default).`,
+    describe: `Use the wallet JSON files in the current work directory for the points and the network keys. Will only generate the network key file. The wallet must have been generated with the --generate-network-keys set to true (default).`,
     type: "boolean",
     conflicts: ["points-file", "points"],
   });
@@ -57,34 +60,50 @@ exports.builder = (yargs) => {
   });
 };
 
-exports.handler = async function (argv) {
-  const workDir = files.ensureWorkDir(argv.workDir);
+const handler = async function (argv) {
+  try {
+    const result = await generateNetworkKey(argv);
+    if (argv.returnObject) {
+      console.log("Return:", JSON.stringify(result, null, 2));
+      return result;
+    }
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    throw error;
+  }
+};
 
-  const wallets = argv.useWalletFiles ? findPoints.getWallets(workDir) : null;
-  const points = findPoints.getPoints(argv, workDir, wallets);
+async function generateNetworkKey(args) {
+  const workDir = files.ensureWorkDir(args.workDir);
+
+  const wallets = args.useWalletFiles ? findPoints.getWallets(workDir) : null;
+  const points = findPoints.getPoints(args, workDir, wallets);
 
   console.log(`Will generate network keys for ${points.length} points.`);
+
+  const results = [];
+
   for (const p of points) {
     const patp = ob.patp(p);
-    const decPoint = ob.patp2dec(patp);
-    argv.returnDetails = true;
+    const pointArgs = { ...args, returnObject: true };
 
-    const pinfo = await details.getPointInfo(p, argv);
+    const pinfo = await details.getPointInfo(p, pointArgs);
     if (pinfo === null) {
       console.log(`Could not get details for ${patp}, will skip.`);
       continue;
     }
 
     let networkKeyPair = null;
-    let revision = pinfo.networkKeysRevision;
+    const revision = args.breach
+      ? Number(pinfo.networkKeysRevision) + 1
+      : Number(pinfo.networkKeysRevision);
+    const continuity = args.breach
+      ? Number(pinfo.networkKeysRevision) + 1
+      : Number(pinfo.networkKeysRevision);
 
-    let wallet = argv.useWalletFiles ? wallets[patp] : null;
+    let wallet = args.useWalletFiles ? wallets[patp] : null;
     if (wallet) {
-      if (
-        !wallet.network ||
-        !wallet.network.keys ||
-        !wallet.network.keys.crypt
-      ) {
+      if (!wallet.network?.keys?.crypt) {
         console.log(
           `The provided wallet for ${patp} does not contain the network key, will skip ${patp}.`,
         );
@@ -95,19 +114,18 @@ exports.handler = async function (argv) {
       const keysFileName = `${patp.substring(1)}-networkkeys-${revision}.json`;
 
       if (!files.fileExists(workDir, keysFileName)) {
-        let useRev = revision;
         const tmpWallet = await kg.generateWallet({
-          ticket: argv.privateKeyTicket,
+          ticket: args.privateKeyTicket,
           ship: p,
           boot: true,
-          revision: useRev,
+          revision: Number(revision),
         });
         console.log(
-          `Generated network keys for ${patp}: ${argv.privateKeyTicket}, ${revision}`,
+          `Generated network keys for ${patp}: ${args.privateKeyTicket}, ${revision}`,
         );
         networkKeyPair = tmpWallet.network.keys;
 
-        if (!argv.returnObject) {
+        if (!args.returnObject) {
           const file = files.writeFile(workDir, keysFileName, networkKeyPair);
           console.log(`Wrote network keys to: ${file}`);
         }
@@ -116,7 +134,8 @@ exports.handler = async function (argv) {
         networkKeyPair = files.readJsonObject(workDir, keysFileName);
       }
     }
-    if (!argv.returnObject) {
+
+    if (!args.returnObject) {
       const networkKeyfileName = `${patp.substring(1)}-${revision}.key`;
       if (!files.fileExists(workDir, networkKeyfileName)) {
         const networkKeyfileContents = kg.generateKeyfile(
@@ -134,12 +153,34 @@ exports.handler = async function (argv) {
         console.log(`${networkKeyfileName} already exists, will not recreate.`);
       }
     } else {
-      networkKeyfileContents = kg.generateKeyfile(
-        networkKeyPair,
-        p,
-        Number(revision),
-      );
-      return { point: p, networkKeyPair, keyfile: networkKeyfileContents };
+      if (args.returnObject) {
+        const networkKeyfileContents = kg.generateKeyfile(
+          networkKeyPair,
+          p,
+          Number(revision),
+        );
+        let newNetworkInfo = networkKeyPair;
+        newNetworkInfo.revision = Number(revision);
+        newNetworkInfo.continuity = Number(continuity);
+        results.push({
+          point: p,
+          networkKeyData: newNetworkInfo,
+          keyfile: networkKeyfileContents,
+        });
+      }
     }
   }
+
+  if (args.returnObject) {
+    return results;
+  }
+}
+
+module.exports = {
+  handler,
+  generateNetworkKey,
+  command,
+  builder,
+  command,
+  desc,
 };
