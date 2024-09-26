@@ -318,7 +318,6 @@ async function getSponsoredPoints(client, point) {
   console.log(params);
   const method = "getSponsoredPoints";
   var tx = await client.request(method, params);
-  console.log(tx);
   return tx;
 }
 

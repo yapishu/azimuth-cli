@@ -36,7 +36,7 @@ async function getPointsSponsoredByPoint(point, args) {
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
-      console.log(`Sponsored by ${patp}:`, sponsorInfo);
+      console.log(`Sponsored by ${p}:`, sponsorInfo.residents);
     }
   }
 }
