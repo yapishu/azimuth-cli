@@ -315,7 +315,6 @@ async function getSponsoredPoints(client, point) {
   let params = {
     ship: patp,
   };
-  console.log(params);
   const method = "getSponsoredPoints";
   var tx = await client.request(method, params);
   return tx;
