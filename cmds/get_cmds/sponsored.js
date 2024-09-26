@@ -37,9 +37,11 @@ async function getPointsSponsoredByPoint(args) {
       const adoptee = validate.point(args.adoptee);
       const hasEscape = await hasOpenEscape(p, adoptee, sponsorInfo.residents);
       if (args.adoptee && !args.returnObject) {
-        console.log(`Open escape request for ${p} to ${adoptee}`);
+        console.log(`Open escape request for ${adoptee} to ${p}`);
+        continue;
       } else if (args.adoptee && args.returnObject) {
         results.push({ patp: p, adoptee: args.adoptee, adoptable: hasEscape });
+        continue;
       }
     }
     if (args.returnObject) {
