@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const files = require("./utils/files");
 const { startServer } = require("./server");
 const yargs = require("yargs");

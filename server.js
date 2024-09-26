@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const express = require("express");
 const files = require("./utils/files");
 const yargs = require("yargs");
