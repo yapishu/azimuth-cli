@@ -551,5 +551,5 @@ module.exports = {
   canTransfer,
   canSpawn,
   canEscape,
-  can,
+  canAdopt,
 };
