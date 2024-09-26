@@ -2,6 +2,14 @@ const ob = require("urbit-ob");
 const ajs = require("azimuth-js");
 const { rollerApi } = require("../../utils/roller-api");
 
+const builder = (yargs) => {
+  yargs.option("return-object", {
+    describe: "Return the result object instead of writing to disk.",
+    default: false,
+    type: "boolean",
+  });
+};
+
 exports.command = "sponsored";
 exports.desc = "List points a point sponsors.";
 
@@ -40,6 +48,7 @@ async function getPointsSponsoredByPoint(args) {
 module.exports = {
   command,
   desc,
+  builder,
   handler,
   getPointsSponsoredByPoint,
 };
