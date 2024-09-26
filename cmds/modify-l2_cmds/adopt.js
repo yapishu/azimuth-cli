@@ -1,5 +1,6 @@
 const ob = require("urbit-ob");
 const Accounts = require("web3-eth-accounts");
+const { getPointsSponsoredByPoint } = require("../get_cmds/sponsored");
 const { files, eth, findPoints, rollerApi, validate } = require("../../utils");
 
 const command = "adopt";
@@ -47,6 +48,17 @@ async function l2Adopt(args) {
     const pointInfo = await rollerApi.getPoint(rollerClient, patp);
     if (pointInfo.dominion !== "l2") {
       console.log(`This point is not on L2, please use the L1 modify command.`);
+      continue;
+    }
+
+    const adoptParams = {
+      adoptee: ado,
+      point: patp,
+      returnObject: true,
+    };
+    const isSponsorable = await getPointsSponsoredByPoint(adoptParams);
+    if (!isSponsorable.adoptable) {
+      console.log(`No open escape request submitted by ${ado} for ${patp}.`);
       continue;
     }
 
