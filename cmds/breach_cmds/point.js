@@ -26,9 +26,20 @@ async function breachPoint(args) {
       workDir: args.workDir || ".",
     };
 
-    console.log(`Fetching master ticket for ${patp}...`);
-    const ticket = await fetchMasterTicket(patp, auth);
-    fullArgs.privateKeyTicket = `~${ticket}`;
+    if (args.ticket && !args.auth) {
+      console.log(`Fetching master ticket for ${patp}...`);
+      const ticket = await fetchMasterTicket(patp, auth);
+      fullArgs.privateKeyTicket = `~${ticket}`;
+    } else if (
+      args.auth &&
+      typeof process.env.TICKET_BASE_URL === "undefined"
+    ) {
+      throw new Error(
+        `Must include either a master ticket or an admin token with endpoint URL to breach a point. Aborting.`,
+      );
+    } else if (args.ticket) {
+      fullArgs.privateKeyTicket = `~${ticket}`;
+    }
 
     console.log(`Fetching details for ${patp}...`);
     const pointInfo = await details.getPointInfo(patp, fullArgs);

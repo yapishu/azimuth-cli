@@ -265,6 +265,27 @@ async function setManagementProxy(
   return createTransactionReceipt(method, params, tx);
 }
 
+async function escape(client, point, targetShip, signingAddress, privateKey) {
+  const patp = ob.patp(validate.point(point, true));
+  const signingAddressValid = validate.address(signingAddress, true);
+  const proxy = getManagementProxyType(client, point, signingAddress);
+  const target = ob.patp(validate.point(targetShip, true));
+  let params = {
+    address: signingAddressValid,
+    from: {
+      ship: patp,
+      proxy: proxy,
+    },
+    data: {
+      ship: target,
+    },
+  };
+  const method = "escape";
+  params = await addSignature(client, method, params, privateKey);
+  var tx = await client.request(method, params);
+  return createTransactionReceipt(method, params, tx);
+}
+
 async function setSpawnProxy(
   client,
   point,
@@ -431,6 +452,13 @@ async function canConfigureKeys(client, point, address) {
   );
 }
 
+async function canEscape(client, point, address) {
+  return (
+    (await isOwner(client, point, address)) ||
+    (await isManagementProxy(client, point, address))
+  );
+}
+
 async function canTransfer(client, point, address) {
   return (
     (await isOwner(client, point, address)) ||
@@ -459,6 +487,7 @@ module.exports = {
   getUnspawned,
 
   spawn,
+  escape,
   transferPoint,
   setManagementProxy,
   setTransferProxy,
@@ -476,4 +505,5 @@ module.exports = {
   canConfigureKeys,
   canTransfer,
   canSpawn,
+  canEscape,
 };
