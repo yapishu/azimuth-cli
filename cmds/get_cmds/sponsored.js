@@ -10,8 +10,8 @@ const builder = (yargs) => {
   });
 };
 
-exports.command = "sponsored";
-exports.desc = "List points a point sponsors.";
+command = "sponsored";
+desc = "List points a point sponsors.";
 
 const handler = async function (args) {
   try {
