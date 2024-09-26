@@ -34,14 +34,11 @@ async function getPointsSponsoredByPoint(args) {
   const results = [];
   for (const p of points) {
     const patp = ob.patp(p);
-    const sponsorInfo = await rollerApi.getPointsSponsoredByPoint(
-      rollerClient,
-      patp,
-    );
+    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, patp);
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
-      console.log(sponsorInfo);
+      console.log(`Sponsored by ${patp}:`, sponsorInfo);
     }
   }
 }
