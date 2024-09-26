@@ -41,8 +41,8 @@ async function l2Escape(args) {
 
   for (const p of points) {
     const patp = ob.patp(p);
-    const spo = validate.point(args.sponsor);
-    console.log(`Trying to escape ${patp} to ${ob.patp(spo)} (${spo}).`);
+    const spo = ob.patp(validate.point(args.sponsor));
+    console.log(`Trying to escape ${patp} to ${spo}.`);
 
     const pointInfo = await rollerApi.getPoint(rollerClient, patp);
     if (pointInfo.dominion !== "l2") {

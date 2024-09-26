@@ -268,7 +268,7 @@ async function setManagementProxy(
 async function escape(client, point, targetShip, signingAddress, privateKey) {
   const patp = ob.patp(validate.point(point, true));
   const signingAddressValid = validate.address(signingAddress, true);
-  const proxy = getManagementProxyType(client, point, signingAddress);
+  const proxy = await getManagementProxyType(client, point, signingAddress);
   const target = ob.patp(validate.point(targetShip, true));
   let params = {
     address: signingAddressValid,
@@ -280,6 +280,7 @@ async function escape(client, point, targetShip, signingAddress, privateKey) {
       ship: target,
     },
   };
+  console.log(params);
   const method = "escape";
   params = await addSignature(client, method, params, privateKey);
   var tx = await client.request(method, params);
