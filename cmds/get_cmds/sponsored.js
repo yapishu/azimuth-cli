@@ -1,5 +1,5 @@
 const ob = require("urbit-ob");
-const { files, findPoints, rollerApi } = require("../../utils");
+const { files, findPoints, rollerApi, validate } = require("../../utils");
 
 const builder = (yargs) => {
   yargs.option("return-object", {
@@ -31,12 +31,9 @@ async function getPointsSponsoredByPoint(args) {
   const points = findPoints.getPoints(args, workDir, wallets);
   const results = [];
   for (const p of points) {
-    const patp = ob.patp(p);
+    const patp = ob.patp(validate.point(p));
     console.log(`Checking sponsorship for ${args.point} / ${patp}`);
-    const sponsorInfo = await rollerApi.getSponsoredPoints(
-      rollerClient,
-      args.point,
-    );
+    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, patp);
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
