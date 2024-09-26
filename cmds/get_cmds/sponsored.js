@@ -1,17 +1,16 @@
 const ob = require("urbit-ob");
-const ajs = require("azimuth-js");
 const { files, findPoints, rollerApi } = require("../../utils");
 
 const builder = (yargs) => {
   yargs.option("return-object", {
-    describe: "Return the result object instead of writing to disk.",
+    describe: "Return the result object instead of writing to console.",
     default: false,
     type: "boolean",
   });
 };
 
 command = "sponsored";
-desc = "List points a point sponsors.";
+desc = "List of points that a point sponsors.";
 
 const handler = async function (args) {
   try {
@@ -30,10 +29,10 @@ async function getPointsSponsoredByPoint(args) {
   const workDir = files.ensureWorkDir(args.workDir || ".");
   const wallets = args.useWalletFiles ? findPoints.getWallets(workDir) : null;
   const points = findPoints.getPoints(args, workDir, wallets);
-  console.log(`Adopting ${points.length} point(s) to ${args.sponsor}`);
   const results = [];
   for (const p of points) {
     const patp = ob.patp(p);
+    console.log(`Checking sponsorship for ${args.point} / ${patp}`);
     const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, patp);
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
