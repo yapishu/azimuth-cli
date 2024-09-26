@@ -7,16 +7,6 @@ const builder = (yargs) => {
     default: false,
     type: "boolean",
   });
-  yargs.option("points", {
-    alias: ["p", "point"],
-    describe: `One or more points, can be p or patp.`,
-    type: "array",
-    conflicts: ["points-file", "use-wallet-files"],
-  });
-  yargs.option("adoptee", {
-    describe: `Ship to check for escape request.`,
-    type: "string",
-  });
 };
 
 command = "sponsored";
@@ -24,7 +14,7 @@ desc = "List of points that a point sponsors.";
 
 const handler = async function (args) {
   try {
-    const result = await getPointsSponsoredByPoint(args.point, args);
+    const result = await getPointsSponsoredByPoint(args);
     if (args.returnObject) {
       return result;
     }
@@ -62,7 +52,7 @@ async function getPointsSponsoredByPoint(args) {
 
 async function hasOpenEscape(host, adoptee) {
   const point = validate.point(host);
-  const sponsoredBy = await getPointsSponsoredByPoint(args);
+  const sponsoredBy = await getPointsSponsoredByPoint(point);
   // check if args.adoptee is in the array of sponsored points
   return sponsoredBy.some((point) => point === adoptee);
 }
