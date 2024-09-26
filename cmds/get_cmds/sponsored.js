@@ -35,7 +35,7 @@ async function getPointsSponsoredByPoint(args) {
     const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, p);
     if (args.adoptee) {
       const adoptee = validate.point(args.adoptee);
-      const hasEscape = await hasOpenEscape(p, adoptee);
+      const hasEscape = await hasOpenEscape(p, adoptee, sponsorInfo.residents);
       if (args.adoptee && !args.returnObject) {
         console.log(`Open escape request for ${p} to ${adoptee}`);
       } else if (args.adoptee && args.returnObject) {
@@ -50,11 +50,10 @@ async function getPointsSponsoredByPoint(args) {
   }
 }
 
-async function hasOpenEscape(host, adoptee) {
+async function hasOpenEscape(host, adoptee, sponsorResidents) {
   const point = validate.point(host);
-  const sponsoredBy = await getPointsSponsoredByPoint(point);
   // check if args.adoptee is in the array of sponsored points
-  return sponsoredBy.some((point) => point === adoptee);
+  return sponsorResidents.some((point) => point === adoptee);
 }
 
 module.exports = {
