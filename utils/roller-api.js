@@ -313,7 +313,7 @@ async function adopt(client, point, targetShip, signingAddress, privateKey) {
 async function getSponsoredPoints(point) {
   const patp = ob.patp(validate.point(point, true));
   let params = {
-    ppoint: patp,
+    point: patp,
   };
   console.log(params);
   const method = "getSponsoredPoints";
