@@ -1,6 +1,6 @@
 const ob = require("urbit-ob");
 const Accounts = require("web3-eth-accounts");
-const { files, eth, findPoints, rollerApi } = require("../../utils");
+const { files, eth, findPoints, rollerApi, validate } = require("../../utils");
 
 const command = "escape";
 const desc = "Escape from a sponsor to a new sponsor (L2).";
@@ -41,8 +41,8 @@ async function l2Escape(args) {
 
   for (const p of points) {
     const patp = ob.patp(p);
-    const spo = ob.patp(args.sponsor);
-    console.log(`Trying to escape ${patp} to ${spo}.`);
+    const spo = validate.point(args.sponsor);
+    console.log(`Trying to escape ${patp} to ${ob.patp(spo)} (${spo}).`);
 
     const pointInfo = await rollerApi.getPoint(rollerClient, patp);
     if (pointInfo.dominion !== "l2") {
