@@ -1,6 +1,6 @@
 const ob = require("urbit-ob");
 const ajs = require("azimuth-js");
-const { rollerApi } = require("../../utils/roller-api");
+const { rollerApi } = require("../../utils");
 
 const builder = (yargs) => {
   yargs.option("return-object", {
