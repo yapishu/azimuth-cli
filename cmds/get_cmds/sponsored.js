@@ -7,6 +7,16 @@ const builder = (yargs) => {
     default: false,
     type: "boolean",
   });
+  yargs.option("points", {
+    alias: ["p", "point"],
+    describe: `One or more points, can be p or patp.`,
+    type: "array",
+    conflicts: ["points-file", "use-wallet-files"],
+  });
+  yargs.option("adoptee", {
+    describe: `Ship to check for escape request.`,
+    type: "string",
+  });
 };
 
 command = "sponsored";
@@ -24,7 +34,7 @@ const handler = async function (args) {
   }
 };
 
-async function getPointsSponsoredByPoint(point, args) {
+async function getPointsSponsoredByPoint(args) {
   const rollerClient = rollerApi.createClient(args);
   const workDir = files.ensureWorkDir(args.workDir || ".");
   const wallets = args.useWalletFiles ? findPoints.getWallets(workDir) : null;
@@ -33,6 +43,15 @@ async function getPointsSponsoredByPoint(point, args) {
   for (const p of points) {
     console.log(`Checking sponsorship for ${p}`);
     const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, p);
+    if (args.adoptee) {
+      const adoptee = validate.point(args.adoptee);
+      const hasEscape = await hasOpenEscape(p, adoptee);
+      if (args.adoptee && !args.returnObject) {
+        console.log(`Open escape request for ${p} to ${adoptee}`);
+      } else if (args.adoptee && args.returnObject) {
+        results.push({ patp: p, adoptee: args.adoptee, adoptable: hasEscape });
+      }
+    }
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
@@ -41,10 +60,18 @@ async function getPointsSponsoredByPoint(point, args) {
   }
 }
 
+async function hasOpenEscape(host, adoptee) {
+  const point = validate.point(host);
+  const sponsoredBy = await getPointsSponsoredByPoint(args);
+  // check if args.adoptee is in the array of sponsored points
+  return sponsoredBy.some((point) => point === adoptee);
+}
+
 module.exports = {
   command,
   desc,
   builder,
   handler,
   getPointsSponsoredByPoint,
+  hasOpenEscape,
 };
