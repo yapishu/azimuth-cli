@@ -14,7 +14,7 @@ desc = "List of points that a point sponsors.";
 
 const handler = async function (args) {
   try {
-    const result = await getPointsSponsoredByPoint(args);
+    const result = await getPointsSponsoredByPoint(args.point, args);
     if (args.returnObject) {
       return result;
     }
@@ -24,7 +24,7 @@ const handler = async function (args) {
   }
 };
 
-async function getPointsSponsoredByPoint(args) {
+async function getPointsSponsoredByPoint(point, args) {
   const rollerClient = rollerApi.createClient(args);
   const workDir = files.ensureWorkDir(args.workDir || ".");
   const wallets = args.useWalletFiles ? findPoints.getWallets(workDir) : null;
@@ -32,8 +32,8 @@ async function getPointsSponsoredByPoint(args) {
   const results = [];
   for (const p of points) {
     const patp = ob.patp(validate.point(p));
-    console.log(`Checking sponsorship for ${args.point} / ${patp}`);
-    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, p);
+    console.log(`Checking sponsorship for ${point} / ${patp}`);
+    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, point);
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
