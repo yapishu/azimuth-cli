@@ -287,6 +287,41 @@ async function escape(client, point, targetShip, signingAddress, privateKey) {
   return createTransactionReceipt(method, params, tx);
 }
 
+async function adopt(client, point, targetShip, signingAddress, privateKey) {
+  const patp = ob.patp(validate.point(point, true));
+  const signingAddressValid = validate.address(signingAddress, true);
+  const proxy = await getManagementProxyType(client, point, signingAddress);
+  const target = ob.patp(validate.point(targetShip, true));
+  let params = {
+    address: signingAddressValid,
+    from: {
+      ship: patp,
+      proxy: proxy,
+    },
+    force: false,
+    data: {
+      ship: target,
+    },
+  };
+  console.log(params);
+  const method = "adopt";
+  params = await addSignature(client, method, params, privateKey);
+  var tx = await client.request(method, params);
+  return createTransactionReceipt(method, params, tx);
+}
+
+async function getSponsoredPoints(point) {
+  const patp = ob.patp(validate.point(point, true));
+  let params = {
+    ppoint: patp,
+  };
+  console.log(params);
+  const method = "getSponsoredPoints";
+  var tx = await client.request(method, params);
+  console.log(tx);
+  return tx;
+}
+
 async function setSpawnProxy(
   client,
   point,
@@ -460,6 +495,13 @@ async function canEscape(client, point, address) {
   );
 }
 
+async function canAdopt(client, point, address) {
+  return (
+    (await isOwner(client, point, address)) ||
+    (await isManagementProxy(client, point, address))
+  );
+}
+
 async function canTransfer(client, point, address) {
   return (
     (await isOwner(client, point, address)) ||
@@ -489,6 +531,8 @@ module.exports = {
 
   spawn,
   escape,
+  adopt,
+  getSponsoredPoints,
   transferPoint,
   setManagementProxy,
   setTransferProxy,
@@ -507,4 +551,5 @@ module.exports = {
   canTransfer,
   canSpawn,
   canEscape,
+  can,
 };
