@@ -33,7 +33,7 @@ async function getPointsSponsoredByPoint(args) {
   for (const p of points) {
     const patp = ob.patp(validate.point(p));
     console.log(`Checking sponsorship for ${args.point} / ${patp}`);
-    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, patp);
+    const sponsorInfo = await rollerApi.getSponsoredPoints(rollerClient, p);
     if (args.returnObject) {
       results.push({ patp, sponsorInfo });
     } else {
