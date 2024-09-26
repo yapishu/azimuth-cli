@@ -12,6 +12,7 @@ function startServer(argv) {
 
   const commands = {
     breach: require("./cmds/breach_cmds/point").breachPoint,
+    l2Escape: require("./cmds/modify-l2_cmds/escape").l2Escape,
     // other command handlers here
   };
 

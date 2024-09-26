@@ -4,7 +4,6 @@ const files = require("./files");
 const { Accounts } = require("web3-eth-accounts");
 const { env } = require("yargs");
 const ob = require("urbit-ob");
-const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 function initWeb3(argv) {
   if (argv.useMainnet) {
@@ -48,15 +47,17 @@ async function createContext(argv) {
 
 async function getPrivateKey(argv) {
   let pk = null;
-  let decPoint = 0;
-  if (argv.breach && argv.point) {
-    decPoint = ob.patp2dec(`~${argv.point}`);
+  let decPoint = ob.patp2dec(`~${argv.point}`);
+  let boot = argv.spawn;
+  let rev = 0;
+  if (argv.revision) {
+    // this only matters for generating network keys
+    rev = argv.revision;
   }
   //retrieve the pk depending on the provided arguments
   if (argv.privateKey) {
     pk = argv.privateKey;
-  }
-  if (argv.privateKeyFile) {
+  } else if (argv.privateKeyFile) {
     pk = files.readLines("", argv.privateKeyFile).find((x) => !x); //get the first non-empty line
   } else if (argv.privateKeyWalletFile) {
     let wallet = files.readJsonObject("", argv.privateKeyWalletFile);
@@ -66,8 +67,8 @@ async function getPrivateKey(argv) {
     let wallet = await kg.generateWallet({
       ticket: argv.privateKeyTicket,
       ship: decPoint,
-      boot: false,
-      revision: argv.revision,
+      boot: boot,
+      revision: rev,
     });
     pk = wallet.ownership.keys.private;
   }
@@ -101,6 +102,7 @@ async function getCurrentGasPrices() {
 }
 
 async function fetchGasGwei() {
+  const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
   try {
     const axios = require("axios");
     let response = await axios.get(

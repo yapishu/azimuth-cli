@@ -42,7 +42,7 @@ async function l2Escape(args) {
   for (const p of points) {
     const patp = ob.patp(p);
     const spo = ob.patp(args.sponsor);
-    console.log(`Trying to set network key for ${patp} (${p}).`);
+    console.log(`Trying to escape ${patp} to ${spo}.`);
 
     const pointInfo = await rollerApi.getPoint(rollerClient, patp);
     if (pointInfo.dominion !== "l2") {
@@ -55,7 +55,7 @@ async function l2Escape(args) {
     const signingAddress = account.address;
 
     if (!(await rollerApi.canEscape(rollerClient, patp, signingAddress))) {
-      console.log(`Cannot set network keys for ${patp}.`);
+      console.log(`Cannot escape ${patp}.`);
       continue;
     }
 
