@@ -310,7 +310,7 @@ async function adopt(client, point, targetShip, signingAddress, privateKey) {
   return createTransactionReceipt(method, params, tx);
 }
 
-async function getSponsoredPoints(point) {
+async function getSponsoredPoints(client, point) {
   const patp = ob.patp(validate.point(point, true));
   let params = {
     point: patp,
