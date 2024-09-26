@@ -28,6 +28,7 @@ const handler = async function (args) {
 async function getPointsSponsoredByPoint(args) {
   const rollerClient = rollerApi.createClient(args);
   const workDir = files.ensureWorkDir(args.workDir || ".");
+  const wallets = args.useWalletFiles ? findPoints.getWallets(workDir) : null;
   const points = findPoints.getPoints(args, workDir, wallets);
   console.log(`Adopting ${points.length} point(s) to ${args.sponsor}`);
   const results = [];
